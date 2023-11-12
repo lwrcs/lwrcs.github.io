@@ -300,12 +300,12 @@ nav a:hover {
 	color: var(--color1);
 	font-family: var(--body-text);
 	font-weight: 400;
-	font-size: 22px;
+	font-size: 18px;
 	letter-spacing: 1px;
 	position: relative;
 	z-index: -1;
 	margin-top: 20px;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 }
 
 .intro-dt-text h2 {
@@ -331,6 +331,7 @@ nav a:hover {
 	right: 0;
 	bottom: 0;
 	left: 0;
+
 }
 
 .type-text::before {
