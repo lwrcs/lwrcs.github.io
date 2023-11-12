@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Photography | Will Kha</title>
+  <meta name="description" content="Responsive Photo Gallery">
+  <meta name="author" content="Will Kha">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.dark.css">
+  <style>
+    #gallery-container {
+      padding: 20px;
+      margin-top: 60px;}
+
+    #gallery {
+      column-count: 3;
+      column-gap: 20px;
+      text-align: center;
+      position: relative;}
+
+    img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-bottom: 20px;}
+
+    img:hover {
+      transform: scale(1.03); /* Adjust the scale factor as needed */
+      transition: LINEAR .25s;}  
+    
+@media (max-width: 800px) {
+        #gallery {
+            column-count: 1;}
+
+        img:hover {
+            transform: scale(1);}
+}
+  </style>
+</head>
+<body>
+  <!-- Navigation Desktop-->
+  <div class="nav-wrap">
+      <header>
+          <h1 class="logo"><a href="./">Will Kha</a></h1>
+          <nav>
+              <ul>
+                  <li><a href="./#about">About Me</a></li>
+                  <li><a href="3D.html">3D Design</a></li>
+                  <li><a href="productdesign.html">Product Design</a></li>
+                  <li><a href="photo.html">Photography</a></li>
+              </ul>
+          </nav>
+          <div class="nav-gradient"></div>
+      </header>
+  </div>
+
+<!-- NAV BAR MOBILE BUTTOM -->
+<input type="checkbox" class="dropdown-toggle" id="dropdown-menu">
+<label for="dropdown-menu" class="dropdown-label">
+<div class="hamburger">
+  <span class="bar"></span>
+  <span class="bar"></span>
+  <span class="bar"></span>
+</div> 
+</label>
+<ul class="dropdown-menu">
+  <li><a href="index.html#about">About Me</a></li>
+  <li><a href="3D.html">3D Design</a></li>
+  <li><a href="productdesign.html">Product Design</a></li>
+  <li><a href="photo.html">Photography</a></li>
+  <div class="linkedin-logo-container">
+      <a href="https://www.linkedin.com/in/willyumn/">
+        <img class="linkedin-icon" src="img/linkedin.svg" alt="LinkedIn Icon">
+      </a>
+    </div>
+</ul>
+
+  <div id="gallery-container">
+    <div id="gallery">
+   <img src="img/Photography/Angel.png"alt="Angel">
+   <img src="img/Photography/MOMA.png">
+   <img src="img/Photography/Puma.jpg">
+   <img src="img/Photography/BB.png">
+   <img src="img/Photography/AH.png">
+   <img src="img/Photography/Annie.png">
+   <img src="img/Photography/AS.JPG">
+   <img src="img/Photography/ASTRVL.png">
+   <img src="img/Photography/Back.png">
+   <img src="img/Photography/BB.png">
+   <img src="img/Photography/BBQ.png">
+   <img src="img/Photography/Book.JPG">
+   <img src="img/Photography/Buddha.JPG">
+   <img src="img/Photography/xx.png">
+   <img src="img/Photography/Cave.png">
+   <img src="img/Photography/ChesterWatson.png">
+   <img src="img/Photography/Creed.jpg">
+   <img src="img/Photography/death.png">
+   <img src="img/Photography/EC.png">
+   <img src="img/Photography/Red.png">
+   <img src="img/Photography/Self.png">
+   <img src="img/Photography/head.JPG">
+   <img src="img/Photography/ET.jpg">
+   <img src="img/Photography/Feebs.jpg">
+   <img src="img/Photography/Flaot.JPG">
+   <img src="img/Photography/flot.JPG">
+   <img src="img/Photography/Hojicha.JPG">
+   <img src="img/Photography/Horse.png">
+   <img src="img/Photography/Huy.png">
+   <img src="img/Photography/IC.png">
+   <img src="img/Photography/Killian.JPG">
+   <img src="img/Photography/LC.png">
+   <img src="img/Photography/LD.png">
+   <img src="img/Photography/Lit.png">
+   <img src="img/Photography/Julia.png">
+   <img src="img/Photography/NoHead.JPG">
+   <img src="img/Photography/Maria.jpg">
+   <img src="img/Photography/MP.png">
+   <img src="img/Photography/MP2.png">
+   <img src="img/Photography/Ponder.png">
+   <img src="img/Photography/Prison.png">
+   <img src="img/Photography/RH.png">
+   <img src="img/Photography/Roach.png">
+   <img src="img/Photography/SF.png">
+   <img src="img/Photography/SierraVista.png">
+   <img src="img/Photography/TimeSquare.png">
+   <img src="img/Photography/TWSF.png">
+   <img src="img/Photography/VL.png">
+   <img src="img/Photography/Window.JPG">
+   <img src="img/Photography/X.png">
+</div>
+<script src="b2t.js"></script>
+<button id="back-to-top" class="b2t-image"><img src="img/BacktoTop.png" alt="Back to Top"></button>
+</body>
+</html>
