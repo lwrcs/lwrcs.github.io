@@ -763,7 +763,7 @@ nav a:hover {
 
 /* responsive styles (DESKTOP) */
 
-@media screen and (min-width: 801px) {
+@media (orientation: landscape) {
 
 	.process-step p {
 		font-size: 19px;
@@ -827,8 +827,9 @@ nav a:hover {
 	}
 
 	.nav-wrap li a {
-		font-size: 1.6vw; /* Adjust the font size as needed */
+		font-size: 1.8vw; /* Adjust the font size as needed */
 		white-space: nowrap;
+		letter-spacing: 0.001em;
 	}
 
 	#intro h1 {
@@ -976,7 +977,7 @@ nav a:hover {
 	margin-top: 0px;
 }
 
-@media screen and (max-width: 800px) {
+@media (orientation: portrait) {
 	/* skills section */
 
 	.skills-section {
@@ -1035,7 +1036,7 @@ nav a:hover {
 	
 
 
-@media screen and (min-width: 801px) {
+@media (orientation: landscape) {
 
 	.skills-container {
 		max-width: 650px;
@@ -1100,8 +1101,8 @@ nav a:hover {
 	.intro-dt-text h3 {
 		font-family: var(--body-text);
 		font-weight: 300;
-		font-size: 20px;
-		line-height: 18px;
+		font-size: 1.6vw;
+		line-height: 2.2vw;
 		color: var(--color1);
 		width: 100%;
 		max-width: 600px;
@@ -1140,19 +1141,17 @@ nav a:hover {
 		display: flex;
 		align-items: center;
 		text-align: center;
-	}
-
-	.icon-holder span {
-		margin-top: 0px; /* Adjust this value to move the text up or down */
-	}
-
-	.icon-holder a {
 		font-family: Play;
 		color: var(--color4);
 		font-size: 20px;
 		text-decoration: none;
 		cursor: pointer;
 		white-space: nowrap; /* Prevent text from wrapping */
+	}
+
+	.icon-holder span {
+		margin-top: 0px; /* Adjust this value to move the text up or down */
+		font-size: 1.8vw; /* Adjust the font-size value as needed */
 	}
 
 	.contact-set img {
@@ -1222,7 +1221,7 @@ nav a:hover {
 
 
 /* Add this CSS code to your existing CSS styles */
-		@media screen and (max-width: 800px) {
+		@media (orientation: portrait) {
 	.dropdown-toggle {
 	display: none;
 	}
@@ -1345,7 +1344,7 @@ nav a:hover {
   }
   
   /* Hide the dropdown menu on desktop */
-  @media screen and (min-width: 801px) {
+  @media (orientation: landscape) {
 	.dropdown-toggle, .dropdown-label, .dropdown-menu {
 	  display: none;
 	}
