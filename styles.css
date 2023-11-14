@@ -761,7 +761,7 @@ nav a:hover {
 
 /* responsive styles (DESKTOP) */
 
-@media screen and (min-width: 800px) {
+@media screen and (min-width: 801px) {
 
 	.process-step p {
 		font-size: 19px;
@@ -824,7 +824,10 @@ nav a:hover {
 		margin-left: 5px;
 	}
 
-
+	.nav-wrap li a {
+		font-size: 1.6vw; /* Adjust the font size as needed */
+		white-space: nowrap;
+	}
 
 	#intro h1 {
 		font-size: 50px;
@@ -1030,7 +1033,7 @@ nav a:hover {
 	
 
 
-@media screen and (min-width: 800px) {
+@media screen and (min-width: 801px) {
 
 	.skills-container {
 		max-width: 650px;
@@ -1340,7 +1343,7 @@ nav a:hover {
   }
   
   /* Hide the dropdown menu on desktop */
-  @media screen and (min-width: 800px) {
+  @media screen and (min-width: 801px) {
 	.dropdown-toggle, .dropdown-label, .dropdown-menu {
 	  display: none;
 	}
