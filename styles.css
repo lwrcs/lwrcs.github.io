@@ -347,7 +347,7 @@ nav a:hover {
 }
 
 .type-text::after {
-	width: 11px;
+	width: 2px;
 	background: var(--color1);
 	animation:
 		typewriter .8s steps(22) .8s forwards,
@@ -356,7 +356,7 @@ nav a:hover {
 
 @keyframes typewriter {
 	to {
-		left: 100%;
+		left: 92%;
 	}
 }
 
@@ -820,7 +820,6 @@ nav a:hover {
 
 	.section-title {
 		text-align: Center;
-		padding-left: 0;
 		font-size: 61px;
 	}
 
@@ -873,7 +872,7 @@ nav a:hover {
 	/* projects section */
 
 	.projects {
-		padding-top: 1000px;
+		padding-top: 100px;
 	}
 
 	.project-section-m {
