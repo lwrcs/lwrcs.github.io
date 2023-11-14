@@ -93,10 +93,10 @@ body {
 	font-weight: 100;
 	color: var(--color4);
 	font-size: 38px;
-	padding: 12px;
 	border-radius: 8px;
 	position: relative;
-	z-index: -1;
+	z-index: 1;
+
 }
 
 
@@ -255,13 +255,14 @@ nav a:hover {
 }
 
 .intro {
-	height: 80vh;
+	height: 110vh;
 	display: grid;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	padding-top: 100px;
 	z-index: -1;
+	position: relative;
 }
 
 .intro h1 {
@@ -279,6 +280,8 @@ nav a:hover {
 	opacity: 0;
 	transform: translateY(-100px);
 	animation: fadeDown 1s ease-in-out forwards;
+	margin-bottom: 10px;
+	
 }
 
 .intro-text {
@@ -870,7 +873,7 @@ nav a:hover {
 	/* projects section */
 
 	.projects {
-		padding-top: 100px;
+		padding-top: 1000px;
 	}
 
 	.project-section-m {
