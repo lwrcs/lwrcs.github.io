@@ -255,8 +255,8 @@ nav a:hover {
 }
 
 .intro {
-	height: 110vh;
-	display: flex;
+	height: 80vh;
+	display: grid;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
@@ -1102,7 +1102,7 @@ nav a:hover {
 	.intro-dt-text h3 {
 		font-family: var(--body-text);
 		font-weight: 300;
-		font-size: 1.4vw;
+		font-size: 1.1vw;
 		line-height: 2.2vw;
 		color: var(--color1);
 		width: 100%;
@@ -1152,7 +1152,7 @@ nav a:hover {
 
 	.icon-holder span {
 		margin-top: 0px; /* Adjust this value to move the text up or down */
-		font-size: 1.4vw; /* Adjust the font-size value as needed */
+		font-size: 1.1vw; /* Adjust the font-size value as needed */
 	}
 
 	.contact-set img {
