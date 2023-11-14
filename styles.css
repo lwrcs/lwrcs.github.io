@@ -829,7 +829,7 @@ nav a:hover {
 	}
 
 	.nav-wrap li a {
-		font-size: 1.6vw; /* Adjust the font size as needed */
+		font-size: 1.4vw; /* Adjust the font size as needed */
 		white-space: nowrap;
 		letter-spacing: 0.001em;
 	}
