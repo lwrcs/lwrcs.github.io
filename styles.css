@@ -829,7 +829,7 @@ nav a:hover {
 	}
 
 	.nav-wrap li a {
-		font-size: 1.4vw; /* Adjust the font size as needed */
+		font-size: 1.25vw; /* Adjust the font size as needed */
 		white-space: nowrap;
 		letter-spacing: 0.001em;
 	}
@@ -1105,7 +1105,7 @@ nav a:hover {
 		font-family: var(--body-text);
 		font-weight: 300;
 		font-size: 1.1vw;
-		line-height: 2.2vw;
+		line-height: 2vw;
 		color: var(--color1);
 		width: 100%;
 		max-width: 600px;
