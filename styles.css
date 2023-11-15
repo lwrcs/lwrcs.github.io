@@ -720,50 +720,6 @@ nav a:hover {
 	margin-bottom: 12px;
 }
 
-.gallery-title p a {
-	color: var(--color3);
-	text-decoration: none;
-}
-
-/* graphic design page styling */
-
-.gallery-title {
-	padding-top: 100px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	margin-bottom: 20px;
-}
-
-.gallery-title h1 {
-	color: var(--color3);
-	font-family: Play;
-	margin-left: 0;
-	font-size: 36px;
-	letter-spacing: 1px;
-	font-weight: 100;
-	text-align: center;
-	line-height: 33px;
-}
-
-.gallery-title p {
-	text-align: center;
-	color: var(--color1);
-	font-family: var(--body-text);
-	font-size: 18px;
-	line-height: 22px;
-	max-width: 600px;
-	margin-top: 12px;
-
-}
-
-.img-gallery {
-    display: flex;
-    flex-direction: column; /* Make the flex direction vertical */
-}
-
-
-
 /* responsive styles (DESKTOP) */
 
 @media (orientation: landscape) {
