@@ -356,7 +356,7 @@ nav a:hover {
 
 @keyframes typewriter {
 	to {
-		left: 92%;
+		left: 100%;
 	}
 }
 
