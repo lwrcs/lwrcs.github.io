@@ -394,10 +394,9 @@ nav a:hover {
 }
 
 .portrait-wrap img {
-	border-radius: 50%;
-	width: 70%;
-	margin-top: 5px;
-	margin-bottom: 25px;
+	width: 80%;
+	margin-top: 0px;
+	margin-bottom: 35px;
 	max-width: 500px;
 }
 
