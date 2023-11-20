@@ -1415,7 +1415,7 @@ nav a:hover {
 	border-color: rgb(0, 0, 0) transparent rgb(0, 0, 0) transparent;
     width: 80px;
     height: 80px;
-    animation: spin 1.5s infinite linear;
+    animation: spin 1.5s infinite ease;
 }
 
 .loader-section {
