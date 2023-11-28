@@ -1480,11 +1480,13 @@ nav a:hover {
 
 .content {
     position: relative;
+	font-size: .8rem;
     padding: 40px 60px;
-    color: #424242;
+    color: #c4c4c4fb;
     text-align: center;
     transition: 0.5s;
     z-index: 1000;
+	animation: fade 2s ease-in-out infinite; /* Adjust the duration as needed */
 }
 
 @keyframes animate {
@@ -1504,3 +1506,12 @@ nav a:hover {
 		border-radius: 50%;
 }
 }
+
+@keyframes fade {
+	0%, 100% {
+	  opacity: 1;
+	}
+	50% {
+	  opacity: .5;
+	}
+  }

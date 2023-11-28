@@ -61,6 +61,7 @@ img, video {
 .image-container:hover .caption, .video-container:hover .caption {
     opacity: 1;
 }
+
 @media (orientation: portrait) {
     #gallery {
         column-count: 1;
@@ -81,8 +82,17 @@ img, video {
 </head>
 <body>
     <div id="loader-wrapper">
-        <div id="loader"></div>
-        <div class="loader-section"></div>
+        <div class="blob">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <div class="content">
+                <h2>
+                    Loading... 
+                </h2> 
+            </div>
+        </div>
     </div>
 <!-- Navigation Desktop -->
     <div class="nav-wrap">
