@@ -4,6 +4,6 @@ document.onreadystatechange = function () {
         // Introduce a delay (e.g., 1000 milliseconds) before hiding the loader
         setTimeout(function() {
             document.getElementById("loader-wrapper").style.display = "none";
-        }, 50);
+        }, 500);
     }
 };
