@@ -161,12 +161,6 @@ nav ul {
 	list-style: none;
 }
 
-nav li {
-	margin-bottom: 1em;
-	margin-right: 1.5em;
-	transition: transform 170ms ease-in-out;
-}
-
 nav a {
 	font-family: var(--body-text);
 	text-decoration: none;
@@ -644,7 +638,7 @@ nav a:hover {
 	nav li {
 		margin-right: 0;
 		margin-left: 3em;
-		margin-bottom: 0;
+		margin-bottom: 0px;
 	}
 
 	.section-title {
@@ -653,9 +647,9 @@ nav a:hover {
 	}
 
 	.nav-wrap li a {
-		font-size: 1.25vw;
+		font-size: 1.6vw;
 		white-space: nowrap;
-		letter-spacing: 0.001em;
+		letter-spacing: 0.01em;
 	}
 
 	#intro h1 {
@@ -944,6 +938,7 @@ nav a:hover {
 
 	.contact-set {
 		margin-top: 15px;
+
 	}
 
 	.icon-holder {
@@ -952,6 +947,7 @@ nav a:hover {
 		align-items: center;
 		font-family: "Play";
 		font-size: 20px;
+		
 		
 	}
 
@@ -968,13 +964,18 @@ nav a:hover {
 	}
 
 	.icon-holder span {
-		margin-top: 0px; /* Adjust this value to move the text up or down */
-		font-size: 1.1vw; /* Adjust the font-size value as needed */
+		font-size: 1.4vw; /* Adjust the font-size value as needed */
+		justify-content: center;
 	}
 
 	.contact-set img {
+		margin-top: 0;
 		padding: 0;
 		max-width: 34px;
+	}
+
+	#svg { 
+		padding-left: 20px;
 	}
 }
 .b2t-image {
