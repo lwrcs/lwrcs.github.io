@@ -28,29 +28,7 @@ html {
 }
 
 .blinking {
-	animation: blinkingText 1.2s infinite;
-}
-
-@keyframes blinkingText {
-	0% {
-		color: var(--color2);
-	}
-
-	49% {
-		color: var(--color2);
-	}
-
-	60% {
-		color: transparent;
-	}
-
-	99% {
-		color: transparent;
-	}
-
-	100% {
-		color: var(--color2);
-	}
+	animation: fade 1s steps(1,start) infinite;
 }
 
 @keyframes fadeIn {
@@ -1359,21 +1337,6 @@ nav a:hover {
   /* Remove underline on anchor and button */
 .resume-btn, a {
 	text-decoration: none;
-  }
-  
-  .blinking {
-	animation: blink 1s infinite;
-	margin-top: -1px; /* Adjust this value to your desired positioning */
-
-  }
-  
-  @keyframes blink {
-	0%, 100% {
-	  opacity: 1;
-	}
-	50% {
-	  opacity: 0;
-	}
   }
   
   .button-content {
