@@ -1210,6 +1210,7 @@ nav a:hover {
 		z-index: 1000;
 		border: 3px solid var(--color1); /* Add a border with your desired color and width */
 		border-radius: 10px; /* Add rounded corners for a nicer look */
+		
 	  }
 		
 	  }
@@ -1289,16 +1290,11 @@ nav a:hover {
   }
 /* Set the default font size relative to the container's height */
 .dropdown-menu li a {
-	font-size: 4vh; /* Adjust the value as needed */
+	font-size: clamp(3vh, 4vh, 4vh);
 	transition: font-size 0.3s; /* Add a smooth transition effect */
 	line-height: 100%; /* Match the line height to the container height */
-  }
-  
-  /* Adjust font size based on container's height using media query */
-  @media (max-height: 600px) {
-	.dropdown-menu li a {
-	  font-size: 2.5vh; /* Adjust the value for smaller container heights */
-	}
+	margin-top: 35px;
+	white-space: nowrap;
   }
   
   /* Hide the dropdown menu on desktop */
@@ -1317,7 +1313,7 @@ nav a:hover {
 	display: flex;
 	justify-content: center; /* Center horizontally */
 	align-items: center; /* Center vertically */
-	margin-top: 10px; /* Adjust the margin as needed */
+	margin-top: 0px; /* Adjust the margin as needed */
 	
   }
   .nav-gradient {
