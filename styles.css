@@ -220,7 +220,7 @@ nav a:hover {
 
 .intro {
 	height: 110vh;
-	display: grid;
+	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
@@ -250,12 +250,12 @@ nav a:hover {
 
 .intro-text {
 	color: var(--color4);
-	width: 90%;
 	max-width: 550px;
-	opacity: 0;
-	animation: fadeIn 1s ease-in 2.9s forwards;
+	opacity: 1;
+	animation: fadeDown 1s ease-in 2.9s forwards;
 	margin-bottom: 30px;
 }
+
 
 @keyframes fadeDown {
 	to {
@@ -268,7 +268,7 @@ nav a:hover {
 	color: var(--color4);
 	font-family: var(--body-text);
 	font-weight: 400;
-	font-size: 18px;
+	font-size: 4.5vw;
 	letter-spacing: 1px;
 	position: relative;
 	z-index: -1;
@@ -336,7 +336,10 @@ nav a:hover {
 	font-size: 18px;
 	line-height: 24px;
 	text-align: center;
+	display: flex;
+	max-width: 100%;
 }
+
 
 /* about me */
 
@@ -588,6 +591,10 @@ nav a:hover {
 	width: 100%;
 }
 
+.vid {
+	max-width: 100%;
+}
+
 @media (orientation: landscape) {
 
 	.process-step p {
@@ -643,11 +650,6 @@ nav a:hover {
 	.section-title {
 		text-align: Center;
 		font-size: 61px;
-	}
-
-	.intro h2 {
-		margin-top: -20px;
-		margin-left: 5px;
 	}
 
 	.nav-wrap li a {
@@ -822,7 +824,6 @@ nav a:hover {
 		background-color: rgba(255, 255, 255, 0);
 		width: 90%;
 		max-width: 450px;
-		padding: 6px;
 		margin: 0 auto;
 		text-align: center;
 		border: 3px solid var(--color1);
@@ -1203,14 +1204,15 @@ nav a:hover {
   }
   
   .resume-btn {
-	justify-content: center;
-	margin: 0; /* Remove any default button margin */
+	margin: 10px; /* Remove any default button margin */
 	cursor: pointer; /* Change cursor to pointer for better interaction */
-	padding-top: 5px; /* Adjust the value to move the text up or down as needed */
+	padding-top: 5px;
 	display: flex;
 	align-items: center; /* Center vertically */
-	justify-content: center; /* Center horizontally */
+	justify-content: space-around; /* Center horizontally */
 	text-align: center;
+	white-space: nowrap;
+	width: 100%;
 	
 	
   }
@@ -1218,6 +1220,8 @@ nav a:hover {
   /* Remove underline on anchor and button */
 .resume-btn, a {
 	text-decoration: none;
+	display: flex;
+	justify-content: space-around; /* Center horizontally */
   }
   
   .button-content {
@@ -1246,12 +1250,6 @@ nav a:hover {
 }
 
 /* New Loader*/
-
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 .blob {
     position: relative;
