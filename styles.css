@@ -789,6 +789,10 @@ nav a:hover {
 		margin-top: -16px;
 	}
 
+	#vCard {
+		margin-top: 15px;
+	}
+
 @media (orientation: portrait) {
 	/* skills section */
 
