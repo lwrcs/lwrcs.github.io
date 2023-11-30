@@ -347,6 +347,14 @@ nav a:hover {
 	margin-bottom: 90px;
 }
 
+.buttons {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	margin-top: 10px;
+}
+
 .portrait-wrap {
 	display: flex;
 	justify-content: center;
@@ -946,7 +954,7 @@ nav a:hover {
 	}
 
 	.icon-holder {
-		padding: 3px;
+		padding: 2px;
 		display: flex;
 		align-items: center;
 		font-family: "Play";
@@ -961,15 +969,16 @@ nav a:hover {
 		text-align: center;
 		font-family: Play;
 		color: var(--color4);
-		font-size: 20px;
+		font-size: 0px;
 		text-decoration: none;
 		cursor: pointer;
 		white-space: nowrap; /* Prevent text from wrapping */
 	}
 
 	.icon-holder span {
-		font-size: 1.4vw; /* Adjust the font-size value as needed */
+		font-size: 1.5rem; /* Adjust the font-size value as needed */
 		justify-content: center;
+		display: flex;
 	}
 
 	.contact-set img {
