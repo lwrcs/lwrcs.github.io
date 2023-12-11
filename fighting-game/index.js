@@ -81,7 +81,8 @@ const keys = {
     ArrowLeft: { pressed: false },
     ArrowUp: { pressed: false },
     b: { pressed: false },
-    '0': { pressed: false }
+    '0': { pressed: false },
+    'c': { pressed: false }
 };
 
 decreaseTimer();
@@ -330,6 +331,19 @@ window.addEventListener('keydown', (event) => {
             keys['0'].pressed = true;
             enemy.block();
             break;
+            case 'c':
+                keys['c'].pressed = true;
+                var playerControlsContainer = document.querySelector('.playercontrolscontainer');
+                var playerControlsBtn = document.querySelector('.playercontrols-btn');
+                
+                if (playerControlsContainer) {
+                    playerControlsContainer.style.display = (playerControlsContainer.style.display === 'none') ? 'flex' : 'none';
+                }
+                
+                if (playerControlsBtn) {
+                    playerControlsBtn.style.display = (playerControlsBtn.style.display === 'flex') ? 'none' : 'flex';
+                }
+                break;
     }
 });
 
