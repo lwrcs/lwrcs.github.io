@@ -4,12 +4,17 @@
 	--color3: #e0e0e0; 
 	--color4: #272727;
 	--bgcolor: #ffffff;
-	--body-text: 'Play', monospace;
-	--title-text: 'Play', sans-serif;
+	--body-text: 'Londrina', monospace;
+	--title-text: 'Londrina', sans-serif;
 }
 
 html {
 	scroll-behavior: smooth;
+}
+
+@font-face {
+	src: url(fonts/Brocats.ttf);
+	font-family: Brocats;
 }
 
 @font-face {
@@ -18,8 +23,23 @@ html {
 }
 
 @font-face {
+	src: url(fonts/Verah.ttf);
+	font-family: Verah;
+}
+
+@font-face {
+	src: url(fonts/LondrinaSolid-Regular.ttf);
+	font-family: Londrina;
+}
+
+@font-face {
 	src: url(fonts/Play-Regular.ttf);
 	font-family: Play;
+}
+
+@font-face {
+	src: url(fonts/Nonserif.ttf);
+	font-family: Nonserif;
 }
 
 @font-face {
@@ -51,7 +71,7 @@ body {
 }
 
 .section-title {
-	font-family: "Genesis";
+	font-family: "Londrina";
 	display: block;
 	text-align: Center;
 	font-weight: 100;
@@ -80,7 +100,7 @@ header {
 .logo {
 	padding-top: 20px;
 	padding-left: 15px;
-	font-family: Genesis
+	font-family: Brocats
 	;
 	color: var(--color4);
 	opacity: 1;
@@ -224,7 +244,7 @@ nav a:hover {
 }
 
 .intro h1 {
-	font-family: Play;
+	font-family: Nonserif;
 	font-size: 36px;
 	letter-spacing: 0px;
 	color: #000000;
@@ -451,7 +471,7 @@ nav a:hover {
 
 .project-title {
 	color: var(--color4);
-	font-family: Play;
+	font-family: Londrina;
 	margin-left: 0;
 	font-size: 28px;
 	letter-spacing: 1px;
@@ -837,7 +857,7 @@ nav a:hover {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		font-family: "Play";
+		font-family: "Londrina";
 		font-size: 12px;
 		letter-spacing: -.2px;
 		
@@ -1036,7 +1056,7 @@ nav a:hover {
 
 .nav-wrap a:hover {
 	background-color: transparent; /* Make the background transparent on hover */
-    background-image: linear-gradient(to bottom, #ffee00, rgb(255, 0, 0)); /* Set the gradient for the text */
+    background-image: linear-gradient(to bottom, #00ffdd, rgb(0, 17, 255)); /* Set the gradient for the text */
     -webkit-background-clip: text; /* Clip the background to the text (for older browsers) */
     background-clip: text; /* Clip the background to the text */
     color: transparent; /* Make the text transparent */
