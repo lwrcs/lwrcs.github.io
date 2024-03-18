@@ -244,7 +244,7 @@ nav a:hover {
 }
 
 .intro h1 {
-	font-family: Nonserif;
+	font-family: var(--body-text);
 	font-size: 36px;
 	letter-spacing: 0px;
 	color: #000000;
