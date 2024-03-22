@@ -43,14 +43,14 @@ html {
 }
 
 @font-face {
-	src: url(fonts/AreaKilometer50-ow3xB.ttf);
-	font-family: Area;
-  }
+  src: url(fonts/AreaKilometer50-ow3xB.ttf);
+  font-family: Area;
+}
 
 @font-face {
-	src: url(fonts/Unitblock-mLAwm.ttf);
-	font-family: Unitblock;
-  }
+  src: url(fonts/Unitblock-mLAwm.ttf);
+  font-family: Unitblock;
+}
 
 @font-face {
   src: url(https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap);
@@ -75,8 +75,10 @@ body {
   width: 90%;
   max-width: 1100px;
   margin: 0 auto;
-  position: relative; /* Ensure positioning context */
-  z-index: 0; /* Set a lower z-index value */
+  position: relative;
+  /* Ensure positioning context */
+  z-index: 0;
+  /* Set a lower z-index value */
 }
 
 .section-title {
@@ -202,16 +204,16 @@ nav a:hover {
   color: var(--color1);
 }
 
-.nav-toggle:checked ~ nav {
+.nav-toggle:checked~nav {
   transform: scale(1, 1);
 }
 
-.nav-toggle:checked ~ nav a {
+.nav-toggle:checked~nav a {
   opacity: 1;
   transition: opacity 250ms ease-in-out 200ms;
 }
 
-.nav-toggle:checked ~ nav {
+.nav-toggle:checked~nav {
   transition: transform 250ms ease-in-out;
 }
 
@@ -628,7 +630,8 @@ nav a:hover {
     position: fixed;
     width: 100%;
     height: 64px;
-    background-color: #ffffff; /* Replace with the desired background color */
+    background-color: #ffffff;
+    /* Replace with the desired background color */
     z-index: 999;
     display: flex;
     align-items: center;
@@ -738,7 +741,8 @@ nav a:hover {
   .project-card {
     flex-direction: row;
     align-items: center;
-    transition: border-color 0.3s ease; /* Adjust the duration as needed */
+    transition: border-color 0.3s ease;
+    /* Adjust the duration as needed */
     max-width: 1100px;
     /* box-shadow:
 			0 2.8px 2.2px rgba(0, 0, 0, 0.034),
@@ -763,10 +767,13 @@ nav a:hover {
     max-width: 300px;
   }
 }
+
 .img-gallery {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two columns */
-  grid-gap: 10px; /* Adjust the gap as needed */
+  grid-template-columns: repeat(2, 1fr);
+  /* Two columns */
+  grid-gap: 10px;
+  /* Adjust the gap as needed */
 }
 
 .emerald-container {
@@ -778,8 +785,10 @@ nav a:hover {
 }
 
 .img-card {
-  width: calc(100% - 10px); /* Set width to 50% with some spacing */
-  margin-right: 10px; /* Add spacing between videos */
+  width: calc(100% - 10px);
+  /* Set width to 50% with some spacing */
+  margin-right: 10px;
+  /* Add spacing between videos */
 }
 
 /* contact section */
@@ -820,6 +829,7 @@ nav a:hover {
     margin-top: 0px;
   }
 }
+
 .skills-section p {
   font-size: 18px;
   line-height: 23px;
@@ -836,6 +846,7 @@ nav a:hover {
   margin-top: 0px;
   max-width: 600px;
 }
+
 .skills-container {
   background-color: rgba(255, 255, 255, 0);
   width: 90%;
@@ -851,10 +862,13 @@ nav a:hover {
   font-size: 12px;
   letter-spacing: -0.2px;
 }
+
 .skills-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Two equal-width columns */
-  grid-gap: 15px; /* Space between columns. #software */
+  grid-template-columns: 1fr 1fr 1fr;
+  /* Two equal-width columns */
+  grid-gap: 15px;
+  /* Space between columns. #software */
 }
 
 .skills-column {
@@ -862,8 +876,10 @@ nav a:hover {
 }
 
 .skills-columns ul {
-  list-style: none; /* Remove the default bullet points */
-  padding: 0; /* Remove any default padding on the unordered list */
+  list-style: none;
+  /* Remove the default bullet points */
+  padding: 0;
+  /* Remove any default padding on the unordered list */
 }
 
 @media (orientation: landscape) {
@@ -874,10 +890,13 @@ nav a:hover {
     font-size: 16px;
     letter-spacing: 1px;
   }
+
   .skills-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* Two equal-width columns */
-    grid-gap: 60px; /* Space between columns. #software */
+    grid-template-columns: 1fr 1fr 1fr;
+    /* Two equal-width columns */
+    grid-gap: 60px;
+    /* Space between columns. #software */
   }
 
   /* intro section */
@@ -972,11 +991,13 @@ nav a:hover {
     font-size: 0px;
     text-decoration: none;
     cursor: pointer;
-    white-space: nowrap; /* Prevent text from wrapping */
+    white-space: nowrap;
+    /* Prevent text from wrapping */
   }
 
   .icon-holder span {
-    font-size: 1.5rem; /* Adjust the font-size value as needed */
+    font-size: 1.5rem;
+    /* Adjust the font-size value as needed */
     justify-content: center;
     display: flex;
   }
@@ -991,59 +1012,80 @@ nav a:hover {
     padding-left: 20px;
   }
 }
+
 .b2t-image {
-  position: fixed; /* Fixed position for the button */
-  bottom: 20px; /* Adjust the position from the bottom as needed */
-  right: 20px; /* Adjust the position from the right as needed */
+  position: fixed;
+  /* Fixed position for the button */
+  bottom: 20px;
+  /* Adjust the position from the bottom as needed */
+  right: 20px;
+  /* Adjust the position from the right as needed */
   display: block;
   background-color: #00000000;
   border-color: #00000000;
   opacity: 0;
   transition: opacity 1s;
 }
+
 .b2t-image img {
-  opacity: 0.7; /* Lower opacity by default */
-  transition: opacity 0.3s ease; /* Add a smooth transition effect */
+  opacity: 0.7;
+  /* Lower opacity by default */
+  transition: opacity 0.3s ease;
+  /* Add a smooth transition effect */
 }
 
 .b2t-image:hover img {
-  opacity: 1; /* Max opacity when hovering */
-  transform: scale(1.2); /* Grow the button to 120% of its size on hover */
-  transition: transform 0.5s ease; /* Add a smooth transition */
-  animation: scaleButton 2s infinite; /* Apply the animation on hover */
-  cursor: pointer; /* Change to the desired cursor style, e.g., "pointer" for a hand icon */
+  opacity: 1;
+  /* Max opacity when hovering */
+  transform: scale(1.2);
+  /* Grow the button to 120% of its size on hover */
+  transition: transform 0.5s ease;
+  /* Add a smooth transition */
+  animation: scaleButton 2s infinite;
+  /* Apply the animation on hover */
+  cursor: pointer;
+  /* Change to the desired cursor style, e.g., "pointer" for a hand icon */
 }
 
 @keyframes scaleButton {
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(0.8);
   }
+
   100% {
     transform: scale(1);
   }
 }
 
 .nav-wrap a {
-  color: var(--color4); /* Set the default text color */
-  transition: color 1s; /* Apply a smooth color transition effect */
+  color: var(--color4);
+  /* Set the default text color */
+  transition: color 1s;
+  /* Apply a smooth color transition effect */
 }
 
 .nav-wrap a:hover {
-  background-color: transparent; /* Make the background transparent on hover */
-  background-image: linear-gradient(
-    to bottom,
-    #00ffdd,
-    rgb(0, 17, 255)
-  ); /* Set the gradient for the text */
-  -webkit-background-clip: text; /* Clip the background to the text (for older browsers) */
-  background-clip: text; /* Clip the background to the text */
-  color: transparent; /* Make the text transparent */
+  background-color: transparent;
+  /* Make the background transparent on hover */
+  background-image: linear-gradient(to bottom,
+      #00ffdd,
+      rgb(0, 17, 255));
+  /* Set the gradient for the text */
+  -webkit-background-clip: text;
+  /* Clip the background to the text (for older browsers) */
+  background-clip: text;
+  /* Clip the background to the text */
+  color: transparent;
+  /* Make the text transparent */
 }
+
 .nav-wrap {
-  background-color: #ffffff; /* Replace with the desired background color */
+  background-color: #ffffff;
+  /* Replace with the desired background color */
   position: fixed;
   width: 100%;
   height: 64px;
@@ -1071,26 +1113,32 @@ nav a:hover {
   }
 
   .dropdown-menu {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
     list-style: none;
     padding: 0;
     margin: 0;
     position: fixed;
-    top: 80px;
+    top: 40px;
     right: 20px;
     background-color: #ffffffde;
-    width: 90%; /* Set the width to 80% of the viewport */
-    height: 80vh; /* Set the height to 90% of the viewport height */
-    z-index: 1000;
-    border: 3px solid var(--color1); /* Add a border with your desired color and width */
-    border-radius: 10px; /* Add rounded corners for a nicer look */
+    width: 60%;
+    height: 35vh;
+    z-index: 2000;
+    border-radius: 10px;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
+
 }
 
-.dropdown-toggle:checked + .dropdown-label + .dropdown-menu {
-  display: block;
+.dropdown-toggle:checked+.dropdown-label+.dropdown-menu {
+  visibility: visible;
   opacity: 1;
   transform: scaleY(1);
+  transition-delay: 0s;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 ul.dropdown-menu {
@@ -1104,14 +1152,11 @@ ul.dropdown-menu li {
 }
 
 ul.dropdown-menu a {
-  font-family: "play";
+  font-family: "Londrina";
   text-decoration: none;
-  letter-spacing: -2px;
-  font-size: 30px;
-  opacity: 1;
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 0.2s ease;
   display: block;
-  padding: 30px;
+  padding: 10px;
   color: var(--color4);
   margin-top: 20px;
 }
@@ -1146,66 +1191,78 @@ ul.dropdown-menu a {
   top: 16px;
 }
 
-.dropdown-toggle:checked + .dropdown-label .bar:nth-child(1) {
+.dropdown-toggle:checked+.dropdown-label .bar:nth-child(1) {
   transform: translateY(8px) rotate(-45deg);
 }
 
-.dropdown-toggle:checked + .dropdown-label .bar:nth-child(2) {
+.dropdown-toggle:checked+.dropdown-label .bar:nth-child(2) {
   opacity: 0;
 }
 
-.dropdown-toggle:checked + .dropdown-label .bar:nth-child(3) {
+.dropdown-toggle:checked+.dropdown-label .bar:nth-child(3) {
   transform: translateY(-8px) rotate(45deg);
 }
+
 /* Set the default font size relative to the container's height */
 .dropdown-menu li a {
-  font-size: clamp(3vh, 4vh, 4vh);
-  transition: font-size 0.3s; /* Add a smooth transition effect */
-  line-height: 100%; /* Match the line height to the container height */
+  font-size: clamp(2vh, 3vh, 3vh);
+  /* Add a smooth transition effect */
+  line-height: 100%;
+  /* Match the line height to the container height */
   margin-top: 35px;
   white-space: nowrap;
 }
 
 /* Hide the dropdown menu on desktop */
 @media (orientation: landscape) {
+
   .dropdown-toggle,
   .dropdown-label,
   .dropdown-menu {
     display: none;
   }
 }
+
 /* Add this to your CSS styles */
 .linkedin-icon {
-  width: 48px; /* Adjust the width to your desired size */
-  height: auto; /* This maintains the aspect ratio */
+  width: 48px;
+  /* Adjust the width to your desired size */
+  height: auto;
+  /* This maintains the aspect ratio */
 }
 
 .linkedin-logo-container {
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  margin-top: 0px; /* Adjust the margin as needed */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  margin-top: 0px;
+  /* Adjust the margin as needed */
 }
+
 .nav-gradient {
   position: absolute;
   width: 5000px;
   left: -1500px;
-  height: 40px; /* Adjust the height to your desired size */
-  top: 64px; /* Adjust the top position to be just below the navigation bar */
-  background: linear-gradient(
-    to bottom,
-    rgb(255, 255, 255),
-    rgb(255, 255, 255),
-    rgba(255, 0, 0, 0)
-  );
-  z-index: -1; /* Place it below the navigation bar */
+  height: 40px;
+  /* Adjust the height to your desired size */
+  top: 64px;
+  /* Adjust the top position to be just below the navigation bar */
+  background: linear-gradient(to bottom,
+      rgb(255, 255, 255),
+      rgb(255, 255, 255),
+      rgba(255, 0, 0, 0));
+  z-index: -1;
+  /* Place it below the navigation bar */
 }
 
 .resume-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Center vertically in the viewport */
+  height: 100vh;
+  /* Center vertically in the viewport */
 }
 
 .centered-content {
@@ -1216,12 +1273,16 @@ ul.dropdown-menu a {
 }
 
 .resume-btn {
-  margin: 10px; /* Remove any default button margin */
-  cursor: pointer; /* Change cursor to pointer for better interaction */
+  margin: 10px;
+  /* Remove any default button margin */
+  cursor: pointer;
+  /* Change cursor to pointer for better interaction */
   padding-top: 5px;
   display: flex;
-  align-items: center; /* Center vertically */
-  justify-content: space-around; /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  justify-content: space-around;
+  /* Center horizontally */
   text-align: center;
   white-space: nowrap;
   width: 100%;
@@ -1232,18 +1293,24 @@ ul.dropdown-menu a {
 a {
   text-decoration: none;
   display: flex;
-  justify-content: space-around; /* Center horizontally */
+  justify-content: space-around;
+  /* Center horizontally */
 }
 
 .button-content {
-  display: flex; /* Display the icon and text containers side by side */
-  align-items: center; /* Center the icon and text vertically */
+  display: flex;
+  /* Display the icon and text containers side by side */
+  align-items: center;
+  /* Center the icon and text vertically */
 }
 
 .icon-container {
-  margin-right: 0px; /* Adjust the spacing between the icon and text */
-  display: flex; /* Display the icon and text containers side by side */
-  align-items: center; /* Center the icon and text vertically */
+  margin-right: 0px;
+  /* Adjust the spacing between the icon and text */
+  display: flex;
+  /* Display the icon and text containers side by side */
+  align-items: center;
+  /* Center the icon and text vertically */
 }
 
 /*Loader*/
@@ -1344,12 +1411,14 @@ a {
 
 .image-container,
 .video-container {
-  display: block; /* Ensure all items are initially displayed */
+  display: block;
+  /* Ensure all items are initially displayed */
 }
 
 .image-container[style*="display: none"],
 .video-container[style*="display: none"] {
-  display: none !important; /* Override inline display:none styles added by JS */
+  display: none !important;
+  /* Override inline display:none styles added by JS */
 }
 
 /* Filter Button Styles */
@@ -1370,44 +1439,64 @@ a {
 
 #tag-filter {
   display: flex;
-  justify-content: center; /* Center the buttons horizontally */
-  flex-wrap: wrap; /* Allow the buttons to wrap if there's not enough space */
+  justify-content: center;
+  /* Center the buttons horizontally */
+  flex-wrap: wrap;
+  /* Allow the buttons to wrap if there's not enough space */
   padding: 10px;
-  border-radius: 10px; /* Rounded corners for the box */
-  margin-bottom: 20px; /* Space between the box and the gallery */
+  border-radius: 10px;
+  /* Rounded corners for the box */
+  margin-bottom: 20px;
+  /* Space between the box and the gallery */
 }
 
 .filter-button {
-    background-color: var(--color2); /* Use the vibrant color for the button background */
-    color: var(--bgcolor); /* Contrast the button text with the background */
-    padding: 10px 20px;
-    font-family: 'Londrina', sans-serif; /* Consistent font style */
-    font-size: 20px;
-    border: none; /* Remove default border */
-    cursor: pointer;
-    border-radius: 5px; /* Soften the button edges */
-    transition: background-color 0.3s, transform 0.2s; /* Smooth transition for hover effects */
-    text-decoration: none; /* Remove underline from links styled as buttons */
-    display: inline-block; /* Align buttons next to each other */
-    margin: 5px; /* Add some space around buttons */
+  background-color: var(--color2);
+  /* Use the vibrant color for the button background */
+  color: var(--bgcolor);
+  /* Contrast the button text with the background */
+  padding: 10px 20px;
+  font-family: 'Londrina', sans-serif;
+  /* Consistent font style */
+  font-size: 20px;
+  border: none;
+  /* Remove default border */
+  cursor: pointer;
+  border-radius: 5px;
+  /* Soften the button edges */
+  transition: background-color 0.3s, transform 0.2s;
+  /* Smooth transition for hover effects */
+  text-decoration: none;
+  /* Remove underline from links styled as buttons */
+  display: inline-block;
+  /* Align buttons next to each other */
+  margin: 5px;
+  /* Add some space around buttons */
 }
 
 .filter-button:hover {
-    background-color: var(--color1); /* Slightly darker shade on hover for feedback */
-    transform: translateY(-2px); /* Lift button to imply action */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+  background-color: var(--color1);
+  /* Slightly darker shade on hover for feedback */
+  transform: translateY(-2px);
+  /* Lift button to imply action */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Subtle shadow for depth */
 }
 
 .filter-button.active {
-  background-color: var(--color1); /* Active button background color */
-  color: var(--bgcolor); /* Active button text color */
+  background-color: var(--color1);
+  /* Active button background color */
+  color: var(--bgcolor);
+  /* Active button text color */
 }
 
 /* Responsive adjustments for smaller screens */
 @media (max-width: 600px) {
   #tag-filter {
-    flex-direction: column; /* Stack buttons vertically on small screens */
-    align-items: center; /* Center buttons vertically */
+    flex-direction: column;
+    /* Stack buttons vertically on small screens */
+    align-items: center;
+    /* Center buttons vertically */
   }
 }
 
@@ -1415,6 +1504,7 @@ a {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -1424,46 +1514,55 @@ a {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(-360deg);
   }
 }
 
 @keyframes shapeshift {
+
   0%,
   100% {
     border-radius: 60% 40% 60% 40% / 60% 40% 60% 40%;
   }
+
   50% {
     border-radius: 50%;
   }
 }
 
 @keyframes fade {
+
   0%,
   100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @keyframes fadereverse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
 }
 
 @keyframes scale {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.18);
   }
@@ -1473,6 +1572,7 @@ a {
   0% {
     transform: rotate(0deg) translateX(2px) rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg) translateX(2px) rotate(-360deg);
   }
@@ -1480,11 +1580,13 @@ a {
 
 /* Define animations */
 @keyframes moveAway {
+
   /* Define animation keyframes to move filtered-out projects away */
   from {
     opacity: 1;
     transform: translateY(0);
   }
+
   to {
     opacity: 0;
     transform: translateY(20px);
@@ -1492,10 +1594,12 @@ a {
 }
 
 @keyframes condense {
+
   /* Define animation keyframes to condense remaining projects together */
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -1519,6 +1623,7 @@ a {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1526,11 +1631,192 @@ a {
 }
 
 #tag-filter-container {
-    display: flex;
-    justify-content: center; /* Center the buttons horizontally */
-    flex-wrap: wrap; /* Allow the buttons to wrap if there's not enough space */
-    padding: 20px; /* Add some padding around the container */
-    margin: auto; /* Center the container in the available horizontal space */
-	margin-top: 100px;
-    max-width: 80%; /* Limit the maximum width of the container */
+  display: flex;
+  justify-content: center;
+  /* Center the buttons horizontally */
+  flex-wrap: wrap;
+  /* Allow the buttons to wrap if there's not enough space */
+  padding: 20px;
+  /* Add some padding around the container */
+  margin: auto;
+  /* Center the container in the available horizontal space */
+  margin-top: 100px;
+  max-width: 80%;
+  /* Limit the maximum width of the container */
 }
+
+.video-container .bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 5px 0;
+  display: flex;
+  justify-content: left;
+  align-items: left;
+  margin-bottom: 30px;
+  margin-left: 10px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.video-container .bottom-bar .icon {
+  translate: 0;
+  opacity: 0;
+  width: 35px;
+  height: 35px;
+  transition: opacity 0.3s ease, scale 0.3s ease;
+}
+
+.bottom-bar a {
+  margin: 0 5px;
+}
+
+.video-container:hover .bottom-bar {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.video-container:hover .caption {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Apply the hover in animation */
+.video-container:hover .bottom-bar .icon {
+  animation: iconAnimationIn 0.2s ease forwards;
+  animation-delay: calc(var(--icon-index) * 0.1s);
+}
+
+/* Apply the hover out animation when .video-container is not hovered */
+.video-container:not(:hover) .bottom-bar .icon {
+  animation: iconAnimationOut 0.2s ease forwards;
+  /* Use the same calculation for delay to maintain consistency */
+}
+
+.video-container .bottom-bar .icon:nth-child(1) { --icon-index: 1; }
+.video-container .bottom-bar .icon:nth-child(2) { --icon-index: 2; }
+.video-container .bottom-bar .icon:nth-child(3) { --icon-index: 3; }
+.video-container .bottom-bar .icon:nth-child(4) { --icon-index: 4; }
+.video-container .bottom-bar .icon:nth-child(5) { --icon-index: 5; }
+.video-container .bottom-bar .icon:nth-child(6) { --icon-index: 6; }
+
+/* Original animation for hover in */
+@keyframes iconAnimationIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reverse animation for hover out */
+@keyframes iconAnimationOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.icon {
+  z-index: 200;
+  scale: 80%;
+  transition: scale 0.3s ease;
+}
+
+.icon:hover {
+  scale: 100%;
+  transition: scale 0.3s ease;
+}
+
+#gallery-container {
+  padding: 20px;
+  margin-top: 70px;
+}
+
+#gallery {
+  column-count: 3;
+  column-gap: 20px;
+  text-align: center;
+  position: relative;
+  width: 100%;
+}
+
+.image-container,
+.video-container {
+  position: relative;
+}
+
+img,
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 20px;
+  transition: transform 0.25s ease;
+  transition: filter 0.5s ease;
+}
+
+.image-container:hover img,
+.video-container:hover video {
+  filter: brightness(0.2) ;
+  transition: filter 0.5s ease;
+}
+
+.caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0);
+  color: rgb(255, 255, 255);
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  opacity: 0;
+  font-size: 30px;
+  border-radius: 24px;
+  font-family: "Roboto";
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.2s ease, filter 0.5s ease;
+
+  /* Make the overlay unclickable */
+
+}
+
+.image-container:hover .caption,
+.video-container:hover .caption {
+  opacity: 1;
+}
+
+@media (orientation: portrait) {
+  #gallery {
+    column-count: 1;
+  }
+
+  .image-container:hover img,
+  .video-container:hover video {
+    transform: none;
+    filter: brightness(1);
+  }
+
+  .image-container:hover .caption,
+  .video-container:hover .caption {
+    opacity: 0;
+  }
+
+  .caption {
+    z-index: -100;
+  }
+}
+

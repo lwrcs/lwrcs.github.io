@@ -9,116 +9,7 @@
     <link rel="dark stylesheet" href="styles.dark.css" />
 
     <style>
-        #gallery-container {
-            padding: 20px;
-            margin-top: 70px;
-        }
 
-        #gallery {
-            column-count: 3;
-            column-gap: 20px;
-            text-align: center;
-            position: relative;
-            width: 100%;
-        }
-
-        .image-container,
-        .video-container {
-            position: relative;
-        }
-
-        img,
-        video {
-            width: 100%;
-            height: auto;
-            display: block;
-            margin-bottom: 20px;
-            transition: transform 0.25s ease;
-        }
-
-        .image-container:hover img,
-        .video-container:hover video {
-            filter: brightness(0.1) invert(0.1);
-            transition: filter 0.5s ease;
-        }
-
-        .caption {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0);
-            color: rgb(255, 255, 255);
-            padding: 24px;
-            text-align: left;
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            opacity: 0;
-            font-size: 30px;
-            border-radius: 24px;
-            font-family: "Roboto";
-            z-index: 100;
-            pointer-events: none; /* Make the overlay unclickable */
-
-        }
-
-        .image-container:hover .caption,
-        .video-container:hover .caption {
-            opacity: 1;
-        }
-
-        @media (orientation: portrait) {
-            #gallery {
-                column-count: 1;
-            }
-
-            .image-container:hover img,
-            .video-container:hover video {
-                transform: none;
-                filter: brightness(1);
-            }
-
-            .image-container:hover .caption,
-            .video-container:hover .caption {
-                opacity: 0;
-            }
-
-            .caption {
-                z-index: -100;
-            }
-        }
-
-        .video-container .overlay {
-            display: block;
-            /* Make sure overlay is always there */
-            opacity: 0;
-            /* Start fully transparent */
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transition: opacity 0.5s ease, filter 0.5s ease;
-            /* Apply transition to opacity and filter */
-            z-index: 50;
-            /* Adjust z-index to ensure it's above the video but below the caption */
-            pointer-events: none; /* Make the overlay unclickable */
-
-        }
-
-        .video-container:hover .overlay {
-            background: rgba(31, 31, 31, 0.7);
-            /* Darken overlay on hover */
-            opacity: 1;
-            display: block;
-            transition: opacity 0.5s ease, filter 0.5s ease;
-        }
-
-        .video-container:hover .caption {
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
     </style>
 </head>
 
@@ -175,7 +66,7 @@
     </div>
     <div id="gallery-container">
         <div id="gallery">
-            <!--<div class="video-container" data-tags="project 3d anim promo">
+            <div class="video-container" data-tags="project 3d anim promo">
                 <video class="vid" controls>
                     <source src="img/portfolio/District VI Animation.mp4" type="video/mp4" />
                 </video>
@@ -185,25 +76,21 @@
                     <br />
                     Focus: 3D Modeling/Animation, Sound Design
                 </div>
-            </div>-->
+                <div class="bottom-bar">
+                    <div class="icon">
+                        <a href="https://spotify.com" target="_blank"><img src="img/icon/spotify.png" alt="Spotify"></a>
+                    </div>
+                    <div class="icon">
+                        <a href="https://youtube.com" target="_blank"><img src="img/icon/yt.png" alt="YouTube"></a>
+                    </div>
+                    <div class="icon">
+                        <a href="https://soundcloud.com" target="_blank"><img src="img/icon/sc.png"
+                                alt="SoundCloud"></a>
+                    </div>
+                    <!-- Add more icons as needed -->
 
-            <div class="video-container" loading="lazy" data-tags="project 3d anim promo comm">
-                <div class="overlay"></div> <!-- Overlay for hover effect -->
-                <div style="padding:100% 0 0 0;position:relative;">
-                    <iframe
-                        src="https://player.vimeo.com/video/924164176?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
-                        frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
-                        style="position:absolute;top:0;left:0;width:100%;height:100%;"
-                        title="District VI - 6 Ball Coin Collector Animation"></iframe>
-                </div>
-                <div class="caption" style="transform: translateY(60px);">
-                    6-Ball Coin Collector Product Showcase <br />
-                    District VI <br />
-                    <br />
-                    Focus: 3D Modeling/Animation, Sound Design
                 </div>
             </div>
-            <script src="https://player.vimeo.com/api/player.js"></script>
 
             <div class="video-container" loading="lazy" data-tags="project 3d anim promo">
                 <video class="vid" controls>
@@ -228,17 +115,19 @@
                     Roles: Character Modeling, Environment Design, Rigging, Animation
                 </div>
             </div>
-            <div class="video-container" loading="lazy" data-tags="3d anim mv personal">
-                <video class="vid" controls>
-                    <source src="img/portfolio/catboy.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Animated Music Video <br />
-                    lwrcs <br />
-                    <br />
-                    Roles: Character Modeling, Environment Design, Rigging, Animation
+
+                <div class="video-container" loading="lazy" data-tags="3d anim mv personal">
+                    <video class="vid" controls>
+                        <source src="img/portfolio/catboy.mp4" type="video/mp4" />
+                    </video>
+                    <div class="caption">
+                        Animated Music Video <br />
+                        lwrcs <br />
+                        <br />
+                        Roles: Character Modeling, Environment Design, Rigging, Animation
+                    </div>
                 </div>
-            </div>
+            
 
             <div class="video-container" loading="lazy" data-tags="3d anim personal">
                 <video class="vid" poster="img/portfolio/db thumb.jpg" controls>
@@ -251,6 +140,61 @@
                 </div>
             </div>
 
+            <div class="video-container" loading="lazy" data-tags="video promo">
+                <video class="vid" controls>
+                    <source src="img/portfolio/seig.mov" type="video/mp4" />
+                </video>
+                <div class="caption">
+                    B.A. Balis "Seigaiha" Balisong Edit <br />
+                    <br />
+                    Roles: Filming, Editing, Color Grading
+                </div>
+            </div>
+
+            <div class="video-container" loading="lazy" data-tags="3d anim comm">
+                <video class="vid" controls>
+                    <source src="img/portfolio/cyborg grown up_2.mp4" type="video/mp4" />
+                </video>
+                <div class="caption">
+                    Lions Animation <br />
+                    <br />
+                    Roles: Character Animation, Environment Design, Rigging
+                </div>
+            </div>
+
+            <div class="video-container" loading="lazy" data-tags="3d anim comm promo ">
+                <video class="vid" controls>
+                    <source src="img/portfolio/TORTURE ARCADE.mp4" type="video/mp4" />
+                </video>
+                <div class="caption">
+                    Torture Pop-Up Shop Promotional Animation <br />
+                    <br />
+                    Roles: Product Showcase, 3D Animation, Environment Design
+                </div>
+            </div>
+
+            <div class="video-container" loading="lazy" data-tags="3d anim personal mv music">
+                <video class="vid" controls>
+                    <source src="img/portfolio/trashworld-edit.mp4" type="video/mp4" />
+                </video>
+                <div class="caption">
+                    TrashWorld Animation <br />
+                    <br />
+                    Roles: Animation, Music Production
+                </div>
+            </div>
+
+            <div class="video-container" loading="lazy" data-tags="3d anim personal mv music">
+                <video class="vid" controls>
+                    <source src="img/portfolio/lifetime.mov" type="video/mp4" />
+                </video>
+                <div class="caption">
+                    Lifetime Animation <br />
+                    <br />
+                    Roles: Character Animation, Rigging, Environment Design, Music Production
+                </div>
+            </div>
+
             <div class="image-container" data-tags="3d">
                 <img src="img/portfolio/e36rig4k_white.png" alt="3d render of an e36 m3" />
                 <div class="caption">
@@ -258,26 +202,27 @@
                     Focus:Lighting, Rendering, Rigging
                 </div>
             </div>
+
         </div>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 var iframes = document.querySelectorAll('iframe');
                 var overlays = document.querySelectorAll('.video-container .overlay');
-            
-                iframes.forEach(function(iframe, index) {
+
+                iframes.forEach(function (iframe, index) {
                     var player = new Vimeo.Player(iframe);
                     var overlay = overlays[index]; // Assuming each iframe has a corresponding overlay
-            
-                    player.on('play', function() {
+
+                    player.on('play', function () {
                         overlay.style.opacity = '0'; // Prevent dimming by adjusting the opacity
                     });
-            
-                    player.on('pause', function() {
+
+                    player.on('pause', function () {
                         overlay.style.opacity = ''; // Reset the opacity
                     });
                 });
             });
-            </script>
+        </script>
         <script type="text/javascript" src="js/volumelimit.js"></script>
         <script src="js/b2t.js"></script>
         <script src="js/click.js"></script>
