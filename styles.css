@@ -1648,14 +1648,15 @@ a {
 .video-container .bottom-bar {
   position: absolute;
   bottom: 0;
-  left: 0;
+  right: 0;
   width: 100%;
   padding: 5px 0;
   display: flex;
-  justify-content: left;
+  justify-content: right;
   align-items: left;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   margin-left: 10px;
+  margin-right: 10px;
   opacity: 1;
   transition: opacity 0.3s ease;
 }
@@ -1663,13 +1664,13 @@ a {
 .video-container .bottom-bar .icon {
   translate: 0;
   opacity: 0;
-  width: 35px;
-  height: 35px;
+  width: 45px;
+  height: 45px;
   transition: opacity 0.3s ease, scale 0.3s ease;
 }
 
 .bottom-bar a {
-  margin: 0 5px;
+  margin: 0 3px;
 }
 
 .video-container:hover .bottom-bar {
@@ -1684,8 +1685,8 @@ a {
 
 /* Apply the hover in animation */
 .video-container:hover .bottom-bar .icon {
-  animation: iconAnimationIn 0.2s ease forwards;
-  animation-delay: calc(var(--icon-index) * 0.1s);
+  animation: iconAnimationIn 0.3s ease forwards;
+  animation-delay: calc(var(--icon-index) * 0.05s);
 }
 
 /* Apply the hover out animation when .video-container is not hovered */
@@ -1727,7 +1728,7 @@ a {
 
 .icon {
   z-index: 200;
-  scale: 80%;
+  scale: 75%;
   transition: scale 0.3s ease;
 }
 
@@ -1783,15 +1784,39 @@ video {
   justify-content: left;
   align-items: center;
   opacity: 0;
-  font-size: 30px;
+  font-size: 20px;
   border-radius: 24px;
-  font-family: "Roboto";
+  font-family: "Londrina";
   z-index: 100;
   pointer-events: none;
   transition: opacity 0.2s ease, filter 0.5s ease;
+  mix-blend-mode: difference;
 
   /* Make the overlay unclickable */
 
+}
+
+.captionhead {
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0);
+  color: rgb(255, 255, 255);
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  opacity: 0;
+  font-size: 30px;
+  border-radius: 24px;
+  font-family: "Londrina";
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.2s ease, filter 0.5s ease;
+  mix-blend-mode: difference;
 }
 
 .image-container:hover .caption,
