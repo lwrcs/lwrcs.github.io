@@ -28,3 +28,7 @@ header {
 .nav-gradient {
     background: linear-gradient(to bottom, rgb(0, 0, 0), rgb(0, 0, 0), rgba(255, 0, 0, 0));
 }
+
+.type-text {
+    color: white;
+  }
