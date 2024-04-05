@@ -4,7 +4,7 @@ window.onload = function() {
     const menuHTML = `
         <li><a href="#about">About Me</a></li>
         <li><a href="projects.html">Projects</a></li>
-        <li><a href="music.html">Music</a></li>
+        <!--<li><a href="music.html">Music</a></li>-->
     `;
     menuDiv.innerHTML = menuHTML;
     dropMenuDiv.innerHTML = menuHTML;
