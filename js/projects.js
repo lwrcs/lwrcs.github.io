@@ -15,7 +15,8 @@
             youtube: "",
             tidal: "",
             deezer: ""
-        }
+        },
+        visible: true
     },
     */
 
@@ -30,6 +31,7 @@ const projects = [
     links: {
       vimeo: "https://vimeo.com/924164176",
     },
+    visible: true
   },
   {
     title: "Club Promotion Animation",
@@ -38,6 +40,7 @@ const projects = [
     poster: "img/thumbnail/brainchild.jpg",
     src: "img/portfolio/brainchildvisual-4k.mp4",
     roles: "3D Modeling/Animation, Sound Design",
+    visible: true
   },
   {
     title: "Animated Music Video",
@@ -46,6 +49,7 @@ const projects = [
     poster: "img/thumbnail/1nonly.jpg",
     src: "img/portfolio/skate music video.mov",
     roles: "Character Modeling, Environment Design, Rigging, Animation",
+    visible: true
   },
   {
     title: "<3 Character",
@@ -54,6 +58,7 @@ const projects = [
     poster: "img/thumbnail/lwrcs wavy.jpg",
     src: "img/portfolio/lwrcs wavy.mp4",
     roles: "Character Animation",
+    visible: true
   },
   {
     title: "DataBeasts Animation",
@@ -61,6 +66,7 @@ const projects = [
     poster: "img/thumbnail/db.jpg",
     src: "img/portfolio/db sequence.mp4",
     roles: "Character Modeling, Environment Design, Rigging, Animation",
+    visible: true
   },
   {
     title: "Merch Promotional Animation",
@@ -69,6 +75,7 @@ const projects = [
     poster: "img/thumbnail/meek merch.jpg",
     src: "img/portfolio/meek merch.mp4",
     roles: "3D Modeling and Animation",
+    visible: true
   },
   {
     title: "Seigaiha Edit",
@@ -77,6 +84,7 @@ const projects = [
     poster: "img/thumbnail/seig.jpg",
     src: "img/portfolio/seig.mov",
     roles: "Filming, Editing, Color Grading",
+    visible: false
   },
   {
     title: "Ice Logo",
@@ -85,6 +93,7 @@ const projects = [
     poster: "img/thumbnail/lwrcs_ice_rotate_loop.jpg",
     src: "img/portfolio/lwrcs_ice_rotate_loop.mp4",
     roles: "Logo Animation",
+    visible: true
   },
   {
     title: "Pop-Up Shop Promotional Animation",
@@ -93,6 +102,7 @@ const projects = [
     poster: "img/thumbnail/TORTURE ARCADE.jpg",
     src: "img/portfolio/TORTURE ARCADE.mp4",
     roles: "Product Showcase, 3D Animation, Environment Design",
+    visible: true
   },
   {
     title: "Trash Visual",
@@ -101,6 +111,7 @@ const projects = [
     poster: "img/thumbnail/trashworld.jpg",
     src: "img/portfolio/trashworld-edit.mp4",
     roles: "Animation, Music Production",
+    visible: true
   },
   {
     title: "Mystery Box Promotional Animation",
@@ -109,6 +120,7 @@ const projects = [
     poster: "img/thumbnail/torture mystery.jpg",
     src: "img/portfolio/torture mystery.mp4",
     roles: "3D Modeling, Animation, Sound design",
+    visible: true
   },
   {
     title: "Glass Shatter Logo",
@@ -117,6 +129,7 @@ const projects = [
     poster: "img/thumbnail/glass0015-0200.jpg",
     src: "img/portfolio/glass0015-0200.mp4",
     roles: "Logo Animation",
+    visible: true
   },
   {
     title: "Friday the 13th Merch Promotional Animation",
@@ -125,6 +138,7 @@ const projects = [
     poster: "img/thumbnail/torture friday.jpg",
     src: "img/portfolio/torture friday.mp4",
     roles: "Animation, Sound Design",
+    visible: true
   },
   {
     title: "Rhinestone Hoodie Animation",
@@ -133,6 +147,7 @@ const projects = [
     poster: "img/thumbnail/Torture Rhinestone.jpg",
     src: "img/portfolio/Torture Rhinestone.mov",
     roles: "3D Modeling, Animation",
+    visible: true
   },
   {
     title: '"lifetime" Visual',
@@ -152,6 +167,7 @@ const projects = [
       tidal: "https://tidal.com/browse/track/290945229",
       deezer: "https://deezer.page.link/9MdYfpksgKXMLN9YA",
     },
+    visible: true
   },
   {
     title: '"CatBoyDeathSquad" Visual',
@@ -171,6 +187,7 @@ const projects = [
       tidal: "https://tidal.com/browse/track/244269837",
       deezer: "https://deezer.page.link/gi4jBxfzJYUgVWDS6",
     },
+    visible: true
   },
   // Add more projects as needed
 ];

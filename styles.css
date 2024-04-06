@@ -239,6 +239,10 @@ nav a:hover {
   display: none;
 }
 
+.intro-dt h1 {
+  text-align: center;
+}
+
 .intro {
   height: 110vh;
   display: flex;
@@ -1114,9 +1118,8 @@ nav a:hover {
     z-index: 1000;
   }
 
-  .dropdown-menu {
+  ul.dropdown-menu {
     opacity: 0;
-    visibility: hidden;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -1133,14 +1136,17 @@ nav a:hover {
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
-}
+  .dropdown-toggle:checked+.dropdown-label+.dropdown-menu {
+    visibility: visible;
+    opacity: 1;
+    transform: scaleY(1);
+    transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0s;
+  }
 
-.dropdown-toggle:checked+.dropdown-label+.dropdown-menu {
-  visibility: visible;
-  opacity: 1;
-  transform: scaleY(1);
-  transition-delay: 0s;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  nav ul {
+    display: none;
+  }
+
 }
 
 ul.dropdown-menu {
@@ -1885,3 +1891,4 @@ video {
           transform: translateX(-5px);
       }
     }
+

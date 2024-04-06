@@ -10,7 +10,7 @@ function renderProjects(startIndex = 0) {
   // Render projects starting from startIndex or default order if no index is provided
   for (let i = startIndex; i < projects.length; i++) {
     const project = projects[i];
-    if (!project) break; // Exit loop if index exceeds the number of projects
+    if (!project || !project.visible) continue; // Skip if project is not defined or not visible
 
     // Clone the template content
     const projectNode = projectTemplate.content.cloneNode(true);
