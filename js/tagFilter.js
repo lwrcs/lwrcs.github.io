@@ -34,6 +34,18 @@ function initializeFilters() {
     });
   }
 
+  function selectFilterBasedOnURL() {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      const targetButton = Array.from(filterButtons).find(button => button.getAttribute("data-tag") === hash);
+      if (targetButton) {
+        activeTag = hash;
+        applyTagFilter(activeTag);
+        targetButton.classList.add("active");
+      }
+    }
+  }
+
   tagFilterContainer.addEventListener("click", function (event) {
     const target = event.target;
     if (!target.classList.contains("filter-button") || isAnimating) return;
@@ -76,3 +88,4 @@ function initializeFilters() {
 
 document.addEventListener("DOMContentLoaded", initializeFilters);
 window.initializeFilters = initializeFilters;
+
