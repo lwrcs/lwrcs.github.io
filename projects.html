@@ -69,332 +69,48 @@
     </div>
     <div id="gallery-container">
         <div id="gallery">
-            <!--district vi visual-->
-            <div class="video-container" loading="lazy" data-tags="project 3d anim promo">
-                <video class="vid" poster="img/thumbnail/districtvi.jpg" controls>
-                    <source src="img/portfolio/District VI Animation.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    6-Ball Coin Collector Product Showcase <br />
-                    District VI <br />
-                    <br />
-                    Focus: 3D Modeling/Animation, Sound Design
+
+            <!-- Define a template for a project -->
+            <template id="project-template">
+                <div class="video-container" loading="lazy">
+                    <video class="vid" controls preload="none"></video>
+                    <div class="caption"></div>
+                    <div class="bottom-bar"></div>
                 </div>
-                <div class="bottom-bar">
-                    <div class="icon">
-                        <a href="https://vimeo.com/924164176" target="_blank"><img src="img/icon/vimeo.png" alt="Vimeo"></a>
-                    </div>
-                    <!-- Add more icons as needed -->
+            </template>
 
-                </div>
-            </div>
-            <!--brainchild visual-->
-            <div class="video-container" loading="lazy" data-tags="project 3d anim promo">
-                <video class="vid" poster="img/thumbnail/brainchild.jpg" controls preload="none">
-                    <source src="img/portfolio/brainchildvisual-4k.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    6-Ball Coin Collector Product Showcase <br />
-                    District VI <br />
-                    <br />
-                    Focus: 3D Modeling/Animation, Sound Design
-                </div>
-            </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var iframes = document.querySelectorAll('iframe');
+            var overlays = document.querySelectorAll('.video-container .overlay');
 
-            <!--1nonly mine-->
-            <div class="video-container" loading="lazy" data-tags="3d anim mv comm">
-                <video class="vid" poster="img/thumbnail/1nonly.jpg" controls preload="none">
-                    <source src="img/portfolio/skate music video.mov" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Animated Music Video <br />
-                    1nonly <br />
-                    <br />
-                    Roles: Character Modeling, Environment Design, Rigging, Animation
-                </div>
-            </div>
+            iframes.forEach(function (iframe, index) {
+                var player = new Vimeo.Player(iframe);
+                var overlay = overlays[index]; // Assuming each iframe has a corresponding overlay
 
-            <!--catboy visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim mv personal mymusic">
-                <video class="vid" poster="img/thumbnail/catboy.jpg" controls preload="none">
-                    <source src="img/portfolio/catboy.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    catboydeathsquad<br>
-                    lwrcs<br>
-                    <br>
-                    Roles: Music Production & Recording, 3D Animation
-                </div>
-                <div class="bottom-bar">
-                    <div class="icon">
-                        <a href="https://open.spotify.com/track/0OzpMO91x0BJpTVmckJbj9?si=f18951e4cf3c4cec"
-                            target="_blank"><img src="img/icon/spotify.png" alt="Spotify"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://soundcloud.com/lwrcs/catboydeathsquad-ft-sweatcult-xokeegan-zzbleed"
-                            target="_blank"><img src="img/icon/sc.png" alt="SoundCloud"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://music.apple.com/us/album/catboydeathsquad-feat-sweatcult-xokeegan-zzbleed/1641044836?i=1641044837" target="_blank"><img
-                                src="img/icon/apple.png" alt="Apple Music"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://www.youtube.com/watch?v=2nckiRMGhaE" target="_blank"><img src="img/icon/yt.png"
-                                alt="YouTube"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://tidal.com/browse/track/244269837" target="_blank"><img src="img/icon/tidal.png"
-                                alt="Tidal"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://deezer.page.link/gi4jBxfzJYUgVWDS6" target="_blank"><img
-                                src="img/icon/deezer.png" alt="Deezer"></a>
-                    </div>
-                    <!-- Add more icons as needed -->
+                player.on('play', function () {
+                    overlay.style.opacity = '0'; // Prevent dimming by adjusting the opacity
+                });
 
-                </div>
-            </div>
-
-            <!--lwrcs heart char-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal">
-                <video class="vid" poster="img/thumbnail/lwrcs_wavy.jpg" controls muted preload="none">
-                    <source src="img/portfolio/lwrcs wavy.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Character Animation <br />
-                    lwrcs
-                    <br />
-                </div>
-            </div>
-
-
-            <!--databeasts edit-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal">
-                <video class="vid" poster="img/thumbnail/db.jpg" controls preload="none">
-                    <source src="img/portfolio/db sequence.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    DataBeasts Animation <br />
-                    <br />
-                    Roles: Character Modeling, Environment Design, Rigging, Animation
-                </div>
-            </div>
-
-            <!--meek mill merch-->
-            <div class="video-container" loading="lazy" data-tags="3d anim comm promo">
-                <video class="vid" poster="img/thumbnail/meek merch.jpg" controls preload="none">
-                    <source src="img/portfolio/meek merch.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Merch Promotional Animation <br />
-                    Meek Mill
-                    <br />
-                    Roles: 3D Modeling and Animation
-                </div>
-            </div>
-
-            <!--seig edit-->
-            <div class="video-container" loading="lazy" data-tags="video promo">
-                <video class="vid" poster="img/thumbnail/seig.jpg" controls preload="none">
-                    <source src="img/portfolio/seig.mov" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    B.A. Balis "Seigaiha" Balisong Edit <br />
-                    <br />
-                    Roles: Filming, Editing, Color Grading
-                </div>
-            </div>
-
-            <!--ice lwrcs logo-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal logo">
-                <video class="vid" poster="img/thumbnail/lwrcs_ice_rotate_loop.jpg" controls muted preload="none">
-                    <source src="img/portfolio/lwrcs_ice_rotate_loop.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Logo Animation <br />
-                    lwrcs
-                    <br />
-                </div>
-            </div>
-
-            <!--lion run visual-->
-            <!--<div class="video-container" loading="lazy" data-tags="3d anim comm">
-                <video class="vid" poster="img/thumbnail/lions.jpg" controls preload="none">
-                    <source src="img/portfolio/cyborg grown up_2.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Lions Animation <br />
-                    <br />
-                    Roles: Character Animation, Environment Design, Rigging
-                </div>
-            </div>
-        cut is too long-->
-
-            <!--torture arcade-->
-            <div class="video-container" loading="lazy" data-tags="3d anim comm promo ">
-                <video class="vid" poster="img/thumbnail/TORTURE ARCADE.jpg" controls preload="none">
-                    <source src="img/portfolio/TORTURE ARCADE.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Pop-Up Shop Promotional Animation <br />
-                    Torture
-                    <br />
-                    Roles: Product Showcase, 3D Animation, Environment Design
-                </div>
-            </div>
-
-            <!--trashworld visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal mv music mymusic">
-                <video class="vid" poster="img/thumbnail/trashworld.jpg" controls muted preload="none">
-                    <source src="img/portfolio/trashworld-edit.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Trash Animation <br />
-                    <br />
-                    Roles: Animation, Music Production
-                </div>
-            </div>
-
-            <!--torture mystery box visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim comm promo ">
-                <video class="vid" poster="img/thumbnail/torture mystery.jpg" controls preload="none">
-                    <source src="img/portfolio/torture mystery.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Mystery Box Promo <br />
-                    Torture
-                    <br />
-                    Roles: 3D Modeling, Animation, Sound design
-                </div>
-            </div>
-
-            <!--glass lwrcs logo-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal logo">
-                <video class="vid" poster="img/thumbnail/glass0015-0200.jpg" controls muted preload="none">
-                    <source src="img/portfolio/glass0015-0200.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Logo Animation <br />
-                    lwrcs
-                    <br />
-                </div>
-            </div>
-
-            <!--torture halloween visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim comm promo ">
-                <video class="vid" poster="img/thumbnail/torture friday.jpg" controls preload="none">
-                    <source src="img/portfolio/torture friday.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    T-Shirt Promo <br />
-                    Torture
-                    <br />
-                    Roles: Animation, Sound Design
-                </div>
-            </div>
-
-            <!--torture rhinestone visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim comm promo ">
-                <video class="vid" poster="img/thumbnail/Torture Rhinestone.jpg" controls preload="none">
-                    <source src="img/portfolio/Torture Rhinestone.mov" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Hoodie Promo <br />
-                    Torture
-                    <br />
-                    Roles:3D Modeling, Animation
-                </div>
-            </div>
-
-            <!--lifetime visual-->
-            <div class="video-container" loading="lazy" data-tags="3d anim personal mv music mymusic">
-                <video class="vid" poster="img/thumbnail/lifetime.jpg" controls preload="none">
-                    <source src="img/portfolio/lifetime.mov" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    Lifetime Animation <br />
-                    <br />
-                    Roles: Character Animation, Rigging, Environment Design, Music Production
-                </div>
-                <div class="bottom-bar">
-                    <div class="icon">
-                        <a href="https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749"
-                            target="_blank"><img src="img/icon/spotify.png" alt="Spotify"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
-                            target="_blank"><img src="img/icon/sc.png" alt="SoundCloud"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://music.apple.com/us/album/lifetime/1684156859?i=1684156863" target="_blank"><img
-                                src="img/icon/apple.png" alt="Apple Music"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://www.youtube.com/watch?v=ig8_XM-PW7A" target="_blank"><img src="img/icon/yt.png"
-                                alt="YouTube"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://tidal.com/browse/track/290945229" target="_blank"><img src="img/icon/tidal.png"
-                                alt="Tidal"></a>
-                    </div>
-                    <div class="icon">
-                        <a href="https://deezer.page.link/9MdYfpksgKXMLN9YA" target="_blank"><img
-                                src="img/icon/deezer.png" alt="Deezer"></a>
-                    </div>
-                    <!-- Add more icons as needed -->
-
-                </div>
-            </div>
-
-            <!--keeg do or die-->
-            <!--<div class="video-container" loading="lazy" data-tags="video anim comm mv ">
-                <video class="vid" poster="img/thumbnail/do or die.jpg" controls preload="none">
-                    <source src="img/portfolio/do or die.mp4" type="video/mp4" />
-                </video>
-                <div class="caption">
-                    "Do or Die" Music Video <br />
-                    xokeegan<br />
-                    Roles: Filming, Direction, Editing, Effects
-                </div>
-                <div class="bottom-bar">
-                    <div class="icon">
-                        <a href="https://www.youtube.com/watch?v=QGDVo6_nH6M" target="_blank"><img src="img/icon/yt.png"
-                                alt="YouTube"></a>
-                    </div>-->
-                    <!-- need to edit the video itself before posting -->
-
-                </div>
-            </div>
-
-        </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var iframes = document.querySelectorAll('iframe');
-                var overlays = document.querySelectorAll('.video-container .overlay');
-
-                iframes.forEach(function (iframe, index) {
-                    var player = new Vimeo.Player(iframe);
-                    var overlay = overlays[index]; // Assuming each iframe has a corresponding overlay
-
-                    player.on('play', function () {
-                        overlay.style.opacity = '0'; // Prevent dimming by adjusting the opacity
-                    });
-
-                    player.on('pause', function () {
-                        overlay.style.opacity = ''; // Reset the opacity
-                    });
+                player.on('pause', function () {
+                    overlay.style.opacity = ''; // Reset the opacity
                 });
             });
-        </script>
-        <script type="text/javascript" src="js/volumelimit.js"></script>
-        <script src="js/vidPause.js"></script>
-        <script src="js/b2t.js"></script>
-        <script src="js/click.js"></script>
-        <script src="js/loader.js"></script>
-        <button id="back-to-top" class="b2t-image">
-            <img src="img/BacktoTop.png" alt="Back to Top" />
-        </button>
-        <script src="js/tagFilter.js"></script>
+        });
+    </script>
+    <script type="text/javascript" src="js/volumelimit.js"></script>
+    <script src="js/vidPause.js"></script>
+    <script src="js/b2t.js"></script>
+    <script src="js/click.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/tagFilter.js"></script>
+    <script src="js/projects.js"></script>
+    <script src="js/renderProjects.js"></script>
+
+    <button id="back-to-top" class="b2t-image">
+        <img src="img/BacktoTop.png" alt="Back to Top" />
+    </button>
 </body>
 
 </html>

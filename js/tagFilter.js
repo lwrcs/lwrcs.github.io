@@ -1,69 +1,78 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const filterButtons = document.querySelectorAll('.filter-button');
-    const galleryItems = document.querySelectorAll('.image-container, .video-container');
+function initializeFilters() {
+  const filterButtons = document.querySelectorAll(".filter-button");
+  const galleryItems = document.querySelectorAll(".video-container");
 
-    let activeTag = null; // Track the currently active tag
-    let isAnimating = false; // Track whether an animation is in progress
-    let animationTimeout; // Store the timeout ID for clearing if needed
+  let activeTag = null;
+  let isAnimating = false;
+  let animationTimeout;
+  const tagFilterContainer = document.getElementById("tag-filter");
 
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            if (isAnimating) return; // Prevent new actions if an animation is in progress
-            clearTimeout(animationTimeout); // Clear previous timeout if it exists
-            isAnimating = true; // Mark that an animation is starting
+  function applyTagFilter(tag) {
+    galleryItems.forEach((item) => {
+      const tagsAttribute = item.getAttribute("data-tags");
+      if (!tagsAttribute) {
+        console.warn("Missing data-tags attribute on an item:", item);
+        return;
+      }
+      const tags = tagsAttribute.split(" ");
+      const shouldDisplay = tag === null || tags.includes(tag);
 
-            const tag = this.getAttribute('data-tag');
-            const isActive = this.classList.contains('active');
-
-            // Reset active state of buttons and update based on current action
-            filterButtons.forEach(btn => {
-                btn.classList.remove('active');
-                btn.disabled = true; // Disable the button temporarily
-            });
-            if (!isActive || activeTag !== tag) {
-                this.classList.add('active');
-                activeTag = tag; // Update the active tag
-            } else {
-                activeTag = null; // Reset active tag if the same button was pressed again
-            }
-
-            // Apply "move away" animation to all items initially
-            galleryItems.forEach(item => {
-                item.classList.remove('animate-move-in');
-                item.classList.add('animate-move-away');
-            });
-
-            // Delay applying "move in" animation to allow "move away" to fully complete
-            animationTimeout = setTimeout(() => {
-                galleryItems.forEach(item => {
-                    const tags = item.getAttribute('data-tags').split(' ');
-                    if (tags.includes(tag) || tag === 'all' || activeTag === null) {
-                        item.style.display = 'block';
-                        item.classList.remove('animate-move-away');
-                        item.classList.add('animate-move-in');
-                    } else {
-                        if (item.classList.contains('animate-move-away')) {
-                            item.style.display = 'none';
-                        }
-                    }
-                });
-
-                // Re-enable buttons after animations have completed
-                filterButtons.forEach(btn => {
-                    btn.disabled = false;
-                });
-                isAnimating = false; // Mark that animations have completed
-            }, 200); // Adjust this delay to match the "move away" animation duration
-        });
+      // Always start with the move-out animation
+      item.classList.remove("animate-move-in");
+      item.classList.add("animate-move-away");
+      // Force restart of animation by removing and adding classes with a delay
+      setTimeout(() => {
+        // After the move-out animation, decide whether to display the item or not
+        if (shouldDisplay) {
+          item.classList.remove("animate-move-away");
+          item.classList.add("animate-move-in");
+        } else {
+          // If the item should not be displayed, keep it hidden
+          // No additional action needed here if you're handling visibility elsewhere
+        }
+      }, 200); // This delay should match the duration of the "move out" animation
     });
+  }
 
-    // Listen for animation end event and adjust display property accordingly
-    galleryItems.forEach(item => {
-        item.addEventListener('animationend', function () {
-            if (item.classList.contains('animate-move-away')) {
-                item.style.display = 'none';
-            }
-            item.classList.remove('animate-move-away', 'animate-move-in');
-        });
+  tagFilterContainer.addEventListener("click", function (event) {
+    const target = event.target;
+    if (!target.classList.contains("filter-button") || isAnimating) return;
+
+    clearTimeout(animationTimeout);
+    isAnimating = true;
+
+    const tag = target.getAttribute("data-tag");
+    if (activeTag !== tag) {
+      filterButtons.forEach((btn) => {
+        btn.classList.remove("active");
+        btn.disabled = true;
+      });
+      target.classList.add("active");
+      activeTag = tag;
+    } else {
+      target.classList.remove("active");
+      activeTag = null;
+    }
+    galleryItems.forEach((item) => {
+      if (!item.classList.contains("animate-move-away")) {
+        setTimeout(() => {
+          item.style.display = "none";
+        }, 200);
+      }
     });
-});
+    applyTagFilter(activeTag);
+
+    animationTimeout = setTimeout(() => {
+      filterButtons.forEach((btn) => (btn.disabled = false));
+      isAnimating = false;
+      galleryItems.forEach((item) => {
+        if (item.classList.contains("animate-move-in")) {
+          item.style.display = "block";
+        }
+      });
+    }, 200);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initializeFilters);
+window.initializeFilters = initializeFilters;

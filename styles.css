@@ -907,16 +907,17 @@ nav a:hover {
   .intro-dt {
     display: flex;
     align-items: center;
+    flex-direction: column;
     width: 100%;
     height: 100vh;
-    position: center;
+    position: relative;
     z-index: 9999;
     z-index: -1;
     justify-content: center;
   }
 
   .intro-dt-text {
-    position: absolute;
+    position: relative;
     /* top: 0;
 			bottom: 0; */
     left: 0;
@@ -1545,6 +1546,11 @@ a {
   }
 }
 
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 @keyframes fadereverse {
 
   0%,
@@ -1616,7 +1622,7 @@ a {
 }
 
 .animate-move-in {
-  animation: moveInAnimation 0.5s forwards;
+  animation: moveInAnimation 0.5s ease forwards;
 }
 
 @keyframes moveInAnimation {
@@ -1659,7 +1665,7 @@ a {
   margin-left: 10px;
   margin-right: 10px;
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.5s ease;
 }
 
 .video-container .bottom-bar .icon {
