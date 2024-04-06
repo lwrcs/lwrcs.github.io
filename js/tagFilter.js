@@ -16,19 +16,20 @@ function initializeFilters() {
       }
       const tags = tagsAttribute.split(" ");
       const shouldDisplay = tag === null || tags.includes(tag);
-
-      // Always start with the move-out animation
+  
       item.classList.remove("animate-move-in");
       item.classList.add("animate-move-away");
+  
       // Force restart of animation by removing and adding classes with a delay
       setTimeout(() => {
         // After the move-out animation, decide whether to display the item or not
         if (shouldDisplay) {
           item.classList.remove("animate-move-away");
           item.classList.add("animate-move-in");
+          item.style.display = ""; // Reset to default display style or use 'block' if that's the original
         } else {
-          // If the item should not be displayed, keep it hidden
-          // No additional action needed here if you're handling visibility elsewhere
+          item.classList.remove("animate-move-in");
+          item.style.display = "none"; // Ensure the item is not displayed
         }
       }, 200); // This delay should match the duration of the "move out" animation
     });
@@ -84,6 +85,9 @@ function initializeFilters() {
       });
     }, 200);
   });
+
+  // Call the new function to select the filter based on the URL hash
+  selectFilterBasedOnURL();
 }
 
 document.addEventListener("DOMContentLoaded", initializeFilters);
