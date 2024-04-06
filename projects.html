@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    <!-- Loader Animation -->
     <div id="loader-wrapper">
         <div class="blob">
             <span></span>
@@ -25,6 +26,7 @@
             </div>
         </div>
     </div>
+
     <!-- Navigation Desktop -->
     <div class="nav-wrap">
         <header>
@@ -50,6 +52,8 @@
     <ul class="dropdown-menu">
         <script src="js/menu.js" defer></script>
     </ul>
+
+    <!-- Tag Filter Section -->
     <div id="tag-filter-container">
         <div id="tag-filter">
             <button class="filter-button" data-tag="3d">3D Animation</button>
@@ -67,6 +71,8 @@
             <!-- Add more buttons for other tags as needed -->
         </div>
     </div>
+
+    <!-- Gallery Section -->
     <div id="gallery-container">
         <div id="gallery">
 
@@ -79,38 +85,19 @@
                 </div>
             </template>
 
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var iframes = document.querySelectorAll('iframe');
-            var overlays = document.querySelectorAll('.video-container .overlay');
+        </div>
+        <script src="js/vidPause.js"></script>
+        <script src="js/b2t.js"></script>
+        <script src="js/click.js"></script>
+        <script src="js/loader.js"></script>
+        <script src="js/tagFilter.js"></script>
+        <script src="js/projects.js"></script>
+        <script src="js/renderProjects.js"></script>
 
-            iframes.forEach(function (iframe, index) {
-                var player = new Vimeo.Player(iframe);
-                var overlay = overlays[index]; // Assuming each iframe has a corresponding overlay
-
-                player.on('play', function () {
-                    overlay.style.opacity = '0'; // Prevent dimming by adjusting the opacity
-                });
-
-                player.on('pause', function () {
-                    overlay.style.opacity = ''; // Reset the opacity
-                });
-            });
-        });
-    </script>
-    <script type="text/javascript" src="js/volumelimit.js"></script>
-    <script src="js/vidPause.js"></script>
-    <script src="js/b2t.js"></script>
-    <script src="js/click.js"></script>
-    <script src="js/loader.js"></script>
-    <script src="js/tagFilter.js"></script>
-    <script src="js/projects.js"></script>
-    <script src="js/renderProjects.js"></script>
-
-    <button id="back-to-top" class="b2t-image">
-        <img src="img/BacktoTop.png" alt="Back to Top" />
-    </button>
+        <!-- Back to Top Button -->
+        <button id="back-to-top" class="b2t-image">
+            <img src="img/BacktoTop.png" alt="Back to Top" />
+        </button>
 </body>
 
 </html>

@@ -1477,11 +1477,10 @@ a {
 }
 
 .filter-button:hover {
-  background-color: var(--color1);
-  /* Slightly darker shade on hover for feedback */
-  transform: translateY(-2px);
+    /* Slightly darker shade on hover for feedback */
+  transform: translateY(-4px) scale(1.05);
   /* Lift button to imply action */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 12px rgba(0, 0, 0, 0.2);
   /* Subtle shadow for depth */
 }
 
