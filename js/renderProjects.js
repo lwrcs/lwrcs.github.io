@@ -23,8 +23,8 @@ function renderProjects(startIndex = 0) {
 
     // Populate project data into the template
     const videoElement = projectNode.querySelector(".vid");
-    videoElement.poster = project.poster;
-    videoElement.innerHTML = `<source src="${project.src}" type="video/mp4" />`;
+    videoElement.poster = "../" + project.poster;
+    videoElement.innerHTML = `<source src="../${project.src}" type="video/mp4" />`;
     videoElement.volume = defaultVolume; // Apply the default volume to the video element
 
     // Construct caption content conditionally based on non-null values
