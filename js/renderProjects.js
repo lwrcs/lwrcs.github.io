@@ -52,7 +52,9 @@ function renderProjects(startIndex = 0) {
 
     // Append the populated project to the container
     gallery.appendChild(projectNode);
-  }
+    setTimeout(() => {
+      videoElement.poster = project.poster;
+    }, 0);  }
 }
 
 // Call the function to render projects
