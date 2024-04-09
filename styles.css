@@ -204,16 +204,16 @@ nav a:hover {
   color: var(--color1);
 }
 
-.nav-toggle:checked~nav {
+.nav-toggle:checked ~ nav {
   transform: scale(1, 1);
 }
 
-.nav-toggle:checked~nav a {
+.nav-toggle:checked ~ nav a {
   opacity: 1;
   transition: opacity 250ms ease-in-out 200ms;
 }
 
-.nav-toggle:checked~nav {
+.nav-toggle:checked ~ nav {
   transition: transform 250ms ease-in-out;
 }
 
@@ -682,6 +682,7 @@ nav a:hover {
     font-size: 1.6vw;
     white-space: nowrap;
     letter-spacing: 0.01em;
+    transition: color 1s;
   }
 
   #intro h1 {
@@ -1068,25 +1069,19 @@ nav a:hover {
 }
 
 .nav-wrap a {
+  background-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: linear-gradient(to bottom, #00ffdd, rgb(0, 17, 255));
   color: var(--color4);
   /* Set the default text color */
-  transition: color 1s;
+  transition: color 2s;
   /* Apply a smooth color transition effect */
 }
 
 .nav-wrap a:hover {
-  background-color: transparent;
-  /* Make the background transparent on hover */
-  background-image: linear-gradient(to bottom,
-      #00ffdd,
-      rgb(0, 17, 255));
-  /* Set the gradient for the text */
-  -webkit-background-clip: text;
-  /* Clip the background to the text (for older browsers) */
-  background-clip: text;
-  /* Clip the background to the text */
   color: transparent;
-  /* Make the text transparent */
+  transition: color .5s ease-in-out;
 }
 
 .nav-wrap {
@@ -1136,7 +1131,7 @@ nav a:hover {
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
-  .dropdown-toggle:checked+.dropdown-label+.dropdown-menu {
+  .dropdown-toggle:checked + .dropdown-label + .dropdown-menu {
     visibility: visible;
     opacity: 1;
     transform: scaleY(1);
@@ -1146,7 +1141,6 @@ nav a:hover {
   nav ul {
     display: none;
   }
-
 }
 
 ul.dropdown-menu {
@@ -1199,15 +1193,15 @@ ul.dropdown-menu a {
   top: 16px;
 }
 
-.dropdown-toggle:checked+.dropdown-label .bar:nth-child(1) {
+.dropdown-toggle:checked + .dropdown-label .bar:nth-child(1) {
   transform: translateY(8px) rotate(-45deg);
 }
 
-.dropdown-toggle:checked+.dropdown-label .bar:nth-child(2) {
+.dropdown-toggle:checked + .dropdown-label .bar:nth-child(2) {
   opacity: 0;
 }
 
-.dropdown-toggle:checked+.dropdown-label .bar:nth-child(3) {
+.dropdown-toggle:checked + .dropdown-label .bar:nth-child(3) {
   transform: translateY(-8px) rotate(45deg);
 }
 
@@ -1223,7 +1217,6 @@ ul.dropdown-menu a {
 
 /* Hide the dropdown menu on desktop */
 @media (orientation: landscape) {
-
   .dropdown-toggle,
   .dropdown-label,
   .dropdown-menu {
@@ -1257,10 +1250,12 @@ ul.dropdown-menu a {
   /* Adjust the height to your desired size */
   top: 64px;
   /* Adjust the top position to be just below the navigation bar */
-  background: linear-gradient(to bottom,
-      rgb(255, 255, 255),
-      rgb(255, 255, 255),
-      rgba(255, 0, 0, 0));
+  background: linear-gradient(
+    to bottom,
+    rgb(255, 255, 255),
+    rgb(255, 255, 255),
+    rgba(255, 0, 0, 0)
+  );
   z-index: -1;
   /* Place it below the navigation bar */
 }
@@ -1464,7 +1459,7 @@ a {
   color: var(--bgcolor);
   /* Contrast the button text with the background */
   padding: 10px 20px;
-  font-family: 'Londrina', sans-serif;
+  font-family: "Londrina", sans-serif;
   /* Consistent font style */
   font-size: 20px;
   border: none;
@@ -1483,7 +1478,7 @@ a {
 }
 
 .filter-button:hover {
-    /* Slightly darker shade on hover for feedback */
+  /* Slightly darker shade on hover for feedback */
   transform: translateY(-4px) scale(1.05);
   /* Lift button to imply action */
   box-shadow: 0 12px 12px rgba(0, 0, 0, 0.2);
@@ -1528,7 +1523,6 @@ a {
 }
 
 @keyframes shapeshift {
-
   0%,
   100% {
     border-radius: 60% 40% 60% 40% / 60% 40% 60% 40%;
@@ -1540,7 +1534,6 @@ a {
 }
 
 @keyframes fade {
-
   0%,
   100% {
     opacity: 0.5;
@@ -1552,12 +1545,16 @@ a {
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes fadereverse {
-
   0%,
   100% {
     opacity: 1;
@@ -1569,7 +1566,6 @@ a {
 }
 
 @keyframes scale {
-
   0%,
   100% {
     transform: scale(1);
@@ -1592,7 +1588,6 @@ a {
 
 /* Define animations */
 @keyframes moveAway {
-
   /* Define animation keyframes to move filtered-out projects away */
   from {
     opacity: 1;
@@ -1606,7 +1601,6 @@ a {
 }
 
 @keyframes condense {
-
   /* Define animation keyframes to condense remaining projects together */
   from {
     transform: translateX(0);
@@ -1709,12 +1703,29 @@ a {
   /* Use the same calculation for delay to maintain consistency */
 }
 
-.video-container .bottom-bar .icon:nth-child(1) { --icon-index: 1; }
-.video-container .bottom-bar .icon:nth-child(2) { --icon-index: 2; }
-.video-container .bottom-bar .icon:nth-child(3) { --icon-index: 3; }
-.video-container .bottom-bar .icon:nth-child(4) { --icon-index: 4; }
-.video-container .bottom-bar .icon:nth-child(5) { --icon-index: 5; }
-.video-container .bottom-bar .icon:nth-child(6) { --icon-index: 6; }
+.video-container .bottom-bar .icon:nth-child(1) {
+  --icon-index: 1;
+}
+
+.video-container .bottom-bar .icon:nth-child(2) {
+  --icon-index: 2;
+}
+
+.video-container .bottom-bar .icon:nth-child(3) {
+  --icon-index: 3;
+}
+
+.video-container .bottom-bar .icon:nth-child(4) {
+  --icon-index: 4;
+}
+
+.video-container .bottom-bar .icon:nth-child(5) {
+  --icon-index: 5;
+}
+
+.video-container .bottom-bar .icon:nth-child(6) {
+  --icon-index: 6;
+}
 
 /* Original animation for hover in */
 @keyframes iconAnimationIn {
@@ -1722,6 +1733,7 @@ a {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1734,6 +1746,7 @@ a {
     opacity: 1;
     transform: translateY(0);
   }
+
   to {
     opacity: 0;
     transform: translateY(10px);
@@ -1781,7 +1794,7 @@ video {
 
 .image-container:hover img,
 .video-container:hover video {
-  filter: brightness(0.2) ;
+  filter: brightness(0.2);
   transition: filter 0.5s ease;
 }
 
@@ -1807,12 +1820,6 @@ video {
   mix-blend-mode: difference;
 
   /* Make the overlay unclickable */
-
-}
-
-.image-container:hover .caption,
-.video-container:hover .caption {
-  opacity: 1;
 }
 
 @media (orientation: portrait) {
@@ -1823,7 +1830,6 @@ video {
   .image-container:hover img,
   .video-container:hover video {
     transform: none;
-    filter: brightness(1);
   }
 
   .image-container:hover .caption,
@@ -1836,75 +1842,78 @@ video {
   }
 }
 
-    .link-text {
-        position: relative;
-        display: inline-block;
-    }
+.link-text {
+  position: relative;
+  display: inline-block;
+}
 
-    .link-text::before {
-      
-      content: '>';
-      position: absolute;
-      opacity: .5;
-      transition: opacity 0.3s;
-      animation: moveSideToSideRight 2s ease infinite;
+.link-text::before {
+  content: ">";
+  position: absolute;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  animation: moveSideToSideRight 2s ease infinite;
+}
 
+.link-text::after {
+  content: "<";
+  position: absolute;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  animation: moveSideToSideLeft 2s ease infinite;
+}
+
+.link-text:hover::before,
+.link-text:hover::after {
+  opacity: 1;
+}
+
+.link-text::before {
+  left: -10px;
+}
+
+.link-text::after {
+  right: -10px;
+}
+
+@keyframes moveSideToSideLeft {
+  0% {
+    transform: translateX(5px);
   }
-    .link-text::after {
-        content: '<';
-        position: absolute;
-        opacity: .5;
-        transition: opacity 0.3s;
-        animation: moveSideToSideLeft 2s ease infinite;
 
-    }
+  50% {
+    transform: translateX(10px);
+  }
 
-    .link-text:hover::before,
-    .link-text:hover::after {
-        opacity: 1;
-    }
+  100% {
+    transform: translateX(5px);
+  }
+}
 
-    .link-text::before {
-        left: -10px;
-    }
+@keyframes moveSideToSideRight {
+  0% {
+    transform: translateX(-5px);
+  }
 
-    .link-text::after {
-        right: -10px;
-    }
-    @keyframes moveSideToSideLeft {
-      0% {
-          transform: translateX(5px);
-      }
-      50% {
-          transform: translateX(10px);
-      }
-      100% {
-          transform: translateX(5px);
-      }
-    }
-    @keyframes moveSideToSideRight {
-      0% {
-          transform: translateX(-5px);
-      }
-      50% {
-          transform: translateX(-10px);
-      }
-      100% {
-          transform: translateX(-5px);
-      }
-    }
+  50% {
+    transform: translateX(-10px);
+  }
+
+  100% {
+    transform: translateX(-5px);
+  }
+}
 
 .calendly-container {
-    width: 70%;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  padding-top: 2.5%;
+  margin-top: 10 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .calendly-container > * {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-

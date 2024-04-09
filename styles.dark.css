@@ -13,8 +13,10 @@ body {
 }
 
 .nav-wrap a {
-    color: var(--color1);
+    color: white;
     transition: color 1s;
+    background-image: linear-gradient(to bottom, var(--color2), hwb(337 0% 70%));
+
 }
 
 header {
