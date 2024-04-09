@@ -13,9 +13,9 @@ body {
 }
 
 .nav-wrap a {
-    color: white;
+    color: var(--color2);
     transition: color 1s;
-    background-image: linear-gradient(to bottom, var(--color2), hwb(337 0% 70%));
+    background-image: linear-gradient(to bottom, white, white);
 
 }
 
