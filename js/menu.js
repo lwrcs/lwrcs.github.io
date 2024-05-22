@@ -3,8 +3,8 @@ window.onload = function() {
     const dropMenuDiv = document.querySelector('ul.dropdown-menu')
     const menuHTML = `
         <!--<li><a href="about/">About Me</a></li>-->
-        <li><a href="projects/">Projects</a></li>
-        <!--<li><a href="music.html">Music</a></li>-->
+        <li><a href="visuals/">Visuals</a></li>
+        <!--<li><a href="music/">Music</a></li>-->
     `;
     menuDiv.innerHTML = menuHTML;
     dropMenuDiv.innerHTML = menuHTML;
