@@ -1917,3 +1917,23 @@ video {
   justify-content: center;
   align-items: center;
 }
+
+.homepage-container {
+  display: flex;
+  height: 100%;
+}
+
+.visuals-section, .music-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.visuals-section {
+  background-color: #ffcccb;
+}
+
+.music-section {
+  background-color: #add8e6;
+}
