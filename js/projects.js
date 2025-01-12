@@ -58,7 +58,7 @@ const projects = [
     poster: "img/thumbnail/lwrcs wavy.jpg",
     src: "img/portfolio/lwrcs wavy.mp4",
     roles: "Character Animation",
-    visible: true,
+    visible: false,
   },
   {
     title: "DataBeasts Animation",
@@ -66,7 +66,7 @@ const projects = [
     poster: "img/thumbnail/db.jpg",
     src: "img/portfolio/db sequence.mp4",
     roles: "Character Modeling, Environment Design, Rigging, Animation",
-    visible: true,
+    visible: false,
   },
   {
     title: "Merch Promotional Animation",
@@ -75,7 +75,7 @@ const projects = [
     poster: "img/thumbnail/meek merch.jpg",
     src: "img/portfolio/meek merch.mp4",
     roles: "3D Modeling and Animation",
-    visible: true,
+    visible: false,
   },
   {
     title: "Seigaiha Edit",
@@ -93,7 +93,7 @@ const projects = [
     poster: "img/thumbnail/lwrcs_ice_rotate_loop.jpg",
     src: "img/portfolio/lwrcs_ice_rotate_loop.mp4",
     roles: "Logo Animation",
-    visible: true,
+    visible: false,
   },
   {
     title: "Pop-Up Shop Promotional Animation",
@@ -102,7 +102,7 @@ const projects = [
     poster: "img/thumbnail/TORTURE ARCADE.jpg",
     src: "img/portfolio/TORTURE ARCADE.mp4",
     roles: "Product Showcase, 3D Animation, Environment Design",
-    visible: true,
+    visible: false,
   },
   {
     title: "Trash Visual",
@@ -111,7 +111,7 @@ const projects = [
     poster: "img/thumbnail/trashworld.jpg",
     src: "img/portfolio/trashworld-edit.mp4",
     roles: "Animation, Music Production",
-    visible: true,
+    visible: false,
   },
   {
     title: "Mystery Box Promotional Animation",
@@ -131,7 +131,7 @@ const projects = [
     roles: "3D Animation, Sound Design, Environment Design",
     links: {
     },
-    visible: true,
+    visible: false,
   },
   {
     title: "Drowning",
@@ -142,7 +142,7 @@ const projects = [
     roles: "Character Design",
     links: {
     },
-    visible: true,
+    visible: false,
   },
   {
     title: "Glass Shatter Logo",
@@ -160,7 +160,7 @@ const projects = [
     poster: "img/thumbnail/torture friday.jpg",
     src: "img/portfolio/torture friday.mp4",
     roles: "Animation, Sound Design",
-    visible: true,
+    visible: false,
   },
   {
     title: "Rhinestone Hoodie Animation",
@@ -189,7 +189,7 @@ const projects = [
       tidal: "https://tidal.com/browse/track/290945229",
       deezer: "https://deezer.page.link/9MdYfpksgKXMLN9YA",
     },
-    visible: true,
+    visible: false,
   },
   {
     title: '"CatBoyDeathSquad" Visual',
@@ -209,7 +209,7 @@ const projects = [
       tidal: "https://tidal.com/browse/track/244269837",
       deezer: "https://deezer.page.link/gi4jBxfzJYUgVWDS6",
     },
-    visible: true,
+    visible: false,
   },
   // Add more projects as needed
 ];

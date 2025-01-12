@@ -1081,7 +1081,7 @@ nav a:hover {
 
 .nav-wrap a:hover {
   color: transparent;
-  transition: color .5s ease-in-out;
+  transition: color 0.5s ease-in-out;
 }
 
 .nav-wrap {
@@ -1923,7 +1923,8 @@ video {
   height: 100%;
 }
 
-.visuals-section, .music-section {
+.visuals-section,
+.music-section {
   flex: 1;
   display: flex;
   justify-content: center;
