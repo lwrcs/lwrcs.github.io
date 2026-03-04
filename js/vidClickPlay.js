@@ -1,22 +1,27 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const videoContainers = document.querySelectorAll('.video-container');
+// vidClickPlay.js — Click-to-play for video containers
+// Listens for 'projectsRendered' so it works with dynamically added videos
 
-    videoContainers.forEach(container => {
-        const video = container.querySelector('.vid');
+function initVidClickPlay() {
+  const videoContainers = document.querySelectorAll('.video-container');
 
-        // Initially disable pointer events on the video to ignore clicks
-        video.style.pointerEvents = '';
+  videoContainers.forEach(container => {
+    const video = container.querySelector('.vid');
+    if (!video) return;
 
-        const playVideo = () => {
-            video.play()
-                .then(() => {
-                    // Once the video starts playing, re-enable pointer events and remove the click listener
-                    video.style.pointerEvents = '';
-                    container.removeEventListener('click', playVideo);
-                })
-                .catch(error => console.error('Error trying to play the video:', error));
-        };
+    video.style.pointerEvents = '';
 
-        container.addEventListener('click', playVideo);
-    });
-});
+    const playVideo = () => {
+      video.play()
+        .then(() => {
+          video.style.pointerEvents = '';
+          container.removeEventListener('click', playVideo);
+        })
+        .catch(error => console.error('Error trying to play the video:', error));
+    };
+
+    container.addEventListener('click', playVideo);
+  });
+}
+
+document.addEventListener('projectsRendered', initVidClickPlay);
+document.addEventListener('DOMContentLoaded', initVidClickPlay);

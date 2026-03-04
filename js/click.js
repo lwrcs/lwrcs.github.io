@@ -1,15 +1,19 @@
-// click.js
-document.addEventListener('DOMContentLoaded', function () {
-    const videos = document.querySelectorAll('.vid');
+// click.js — Brightness control on play/pause
+// Listens for 'projectsRendered' so it works with dynamically added videos
 
-    videos.forEach(video => {
+function initClickBrightness() {
+  const videos = document.querySelectorAll('.vid');
 
-        video.addEventListener('play', () => {
-            video.style.filter = 'brightness(1)'; // Restore full brightness when video is played
-        });
-
-        video.addEventListener('pause', () => {
-                video.style.filter = ''; // Darken the video when it's paused
-        });
+  videos.forEach(video => {
+    video.addEventListener('play', () => {
+      video.style.filter = 'brightness(1)';
     });
-});
+
+    video.addEventListener('pause', () => {
+      video.style.filter = '';
+    });
+  });
+}
+
+document.addEventListener('projectsRendered', initClickBrightness);
+document.addEventListener('DOMContentLoaded', initClickBrightness);

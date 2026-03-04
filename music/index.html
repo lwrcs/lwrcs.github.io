@@ -1,140 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <base href="../">
     <title>lwrcs | Music</title>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="dark stylesheet" href="styles.dark.css">
-    <script>
-        // Redirect to the visuals page immediately
-        window.location.href = "../visuals/index.html";
-    </script>
-
-<style>
-#gallery-container {
-    padding: 20px;
-    margin-top: 70px; 
-}
-
-#gallery {
-    column-count: 3;
-    column-gap: 20px;
-    text-align: center;
-    position: relative;
-    width: 100%;
-}
-
-.image-container, .video-container {
-    position: relative;
-}
-
-img, video {
-    width: 100%;
-    height: auto;
-    display: block;
-    margin-bottom: 20px;
-    transition: transform 0.25s ease;
-}
-
-.image-container:hover img, .video-container:hover video {
-    filter: brightness(0.1) invert(0.1);
-    transition: filter 0.5s ease;
-}
-
-.caption {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0);
-    color: rgb(255, 255, 255);
-    padding: 24px;
-    text-align: left;
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    opacity: 0;
-    font-size: 30px;
-    border-radius: 24px;
-    font-family: "Roboto";
-    z-index: 100;
-}
-
-.image-container:hover .caption, .video-container:hover .caption {
-    opacity: 1;
-}
-
-@media (orientation: portrait) {
-    #gallery {
-        column-count: 1;
-    }
-    .image-container:hover img, .video-container:hover video {
-        transform: none;
-        filter: brightness(1);
-    }
-    .image-container:hover .caption, .video-container:hover .caption {
-        opacity: 0;
-    }
-    .caption {
-        z-index: -100;
-    }
-}
-</style>
-
+    <meta name="description" content="lwrcs — Music production, releases, and audio work." />
+    <meta property="og:title" content="lwrcs | Music" />
+    <meta property="og:description" content="Music production, releases, and audio work." />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
-    <div id="loader-wrapper">
+    <!-- Loader Animation -->
+    <div id="loader-wrapper" role="status" aria-label="Loading">
         <div class="blob">
             <span></span>
             <span></span>
             <span></span>
             <span></span>
             <div class="content">
-                <h2>
-                    Loading... 
-                </h2> 
+                <h2>Loading...</h2>
             </div>
         </div>
     </div>
-<!-- Navigation Desktop -->
+
+    <!-- Navigation Desktop -->
     <div class="nav-wrap">
         <header>
             <h1 class="logo"><a href="index.html">lwrcs</a></h1>
-            <nav>
-                <ul>
-                    <script src="js/menu.js" defer></script>
-                </ul>
+            <nav aria-label="Main navigation">
+                <ul></ul>
             </nav>
             <div class="nav-gradient"></div>
         </header>
     </div>
 
-<!-- Navigation Mobile -->
-    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu">
-    <label for="dropdown-menu" class="dropdown-label">
+    <!-- Navigation Mobile -->
+    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu" aria-hidden="true" />
+    <label for="dropdown-menu" class="dropdown-label" aria-label="Toggle navigation menu">
         <div class="hamburger">
             <span class="bar"></span>
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
     </label>
-    <ul class="dropdown-menu">
-        <script src="js/menu.js" defer></script>
-    </ul>
+    <ul class="dropdown-menu" role="navigation" aria-label="Mobile navigation"></ul>
+
+    <!-- Main Content -->
     <div id="gallery-container">
         <div id="gallery">
-
-    <div class="type-text">Under Construction...</div>  
-
-<div class="image-container">
+            <div class="type-text">Under Construction...</div>
+        </div>
     </div>
-<script type="text/javascript" src="js/volumelimit.js"></script>
-<script src="js/b2t.js"></script>
-<script src="js/click.js"></script>
-<script src="js/loader.js"></script>
-<button id="back-to-top" class="b2t-image"><img src="img/BacktoTop.png" alt="Back to Top"></button>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="b2t-image" aria-label="Back to top">
+        <img src="img/BacktoTop.png" alt="Back to Top" />
+    </button>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/b2t.js"></script>
+    <script src="js/click.js"></script>
+    <script src="js/loader.js"></script>
 </body>
+
 </html>

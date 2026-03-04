@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <base href="../">
     <title>lwrcs | Visuals</title>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet" />
+    <meta name="description" content="lwrcs — Visual portfolio showcasing 3D animation, music videos, and promotional work." />
+    <meta property="og:title" content="lwrcs | Visuals" />
+    <meta property="og:description" content="Visual portfolio showcasing 3D animation, music videos, and promotional work." />
+    <meta property="og:type" content="website" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="dark stylesheet" href="styles.dark.css" />
-
-    <style>
-
-    </style>
 </head>
 
 <body>
     <!-- Loader Animation -->
-    <div id="loader-wrapper">
+    <div id="loader-wrapper" role="status" aria-label="Loading">
         <div class="blob">
             <span></span>
             <span></span>
@@ -31,46 +30,35 @@
     <!-- Navigation Desktop -->
     <div class="nav-wrap">
         <header>
-            <h1 class="logo"><a href="/">lwrcs</a></h1>
-            <nav>
-                <ul>
-                    <script src="js/menu.js" defer></script>
-                </ul>
+            <h1 class="logo"><a href="index.html">lwrcs</a></h1>
+            <nav aria-label="Main navigation">
+                <ul></ul>
             </nav>
             <div class="nav-gradient"></div>
         </header>
     </div>
 
     <!-- Navigation Mobile -->
-    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu" />
-    <label for="dropdown-menu" class="dropdown-label">
+    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu" aria-hidden="true" />
+    <label for="dropdown-menu" class="dropdown-label" aria-label="Toggle navigation menu">
         <div class="hamburger">
             <span class="bar"></span>
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
     </label>
-    <ul class="dropdown-menu">
-        <script src="js/menu.js" defer></script>
-    </ul>
+    <ul class="dropdown-menu" role="navigation" aria-label="Mobile navigation"></ul>
 
     <!-- Tag Filter Section -->
-    <!--
     <div id="tag-filter-container">
         <div id="tag-filter">
             <button class="filter-button" data-tag="3d">3D Animation</button>
-            <button class="filter-button" data-tag="mymusic">Music</button>
-
-            <button class="filter-button" data-tag="promo">
-                Promotional Material
-            </button>
+            <button class="filter-button" data-tag="mv">Music Videos</button>
+            <button class="filter-button" data-tag="promo">Promotional</button>
             <button class="filter-button" data-tag="anim">Animation</button>
-            <button class="filter-button" data-tag="video">Video</button>
-            <button class="filter-button" data-tag="personal">Personal Work</button>
-            <button class="filter-button" data-tag="comm">Commission Work</button>
+            <button class="filter-button" data-tag="comm">Commission</button>
+            <button class="filter-button" data-tag="personal">Personal</button>
             <button class="filter-button" data-tag="logo">Logo Animation</button>
-            -->
-            <!-- Add more buttons for other tags as needed -->
         </div>
     </div>
 
@@ -78,9 +66,9 @@
     <div id="gallery-container">
         <div id="gallery">
 
-            <!-- Define a template for a project -->
+            <!-- Template for dynamically-rendered projects -->
             <template id="project-template">
-                <div class="video-container" loading="lazy">
+                <div class="video-container">
                     <video class="vid" controls preload="none"></video>
                     <div class="caption"></div>
                     <div class="bottom-bar"></div>
@@ -89,28 +77,27 @@
 
         </div>
 
-        <!-- Calendly inline widget begin -->
-         <!--
-        <div class="calendly-container">
-            <div class="calendly-inline-widget" data-url="https://calendly.com/harrisonkalman?primary_color=00c4ff"
-                style="min-width:500px;height:700px;"></div>
-            <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
-            -->
-            <!-- Calendly inline widget end -->
+        <!-- Back to Top Button -->
+        <button id="back-to-top" class="b2t-image" aria-label="Back to top">
+            <img src="img/BacktoTop.png" alt="Back to Top" />
+        </button>
+    </div>
 
-            <script src="js/vidClickPlay.js"></script>
-            <script src="js/vidPause.js"></script>
-            <script src="js/b2t.js"></script>
-            <script src="js/click.js"></script>
-            <script src="js/loader.js"></script>
-            <script src="js/tagFilter.js"></script>
-            <script src="js/projects.js"></script>
-            <script src="js/renderProjects.js"></script>
-
-            <!-- Back to Top Button -->
-            <button id="back-to-top" class="b2t-image">
-                <img src="img/BacktoTop.png" alt="Back to Top" />
-            </button>
+    <!-- JavaScript — loaded once, in correct dependency order -->
+    <script src="js/config.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/projects.js"></script>
+    <script src="js/renderProjects.js"></script>
+    <script src="js/alternateGallery.js"></script>
+    <script src="js/lazyLoad.js"></script>
+    <script src="js/tagFilter.js"></script>
+    <script src="js/vidClickPlay.js"></script>
+    <script src="js/vidPause.js"></script>
+    <script src="js/click.js"></script>
+    <script src="js/b2t.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="js/youtubeOverlay.js"></script>
 </body>
 
 </html>

@@ -1,16 +1,19 @@
-    document.addEventListener("DOMContentLoaded", function() {
-        // Get all video elements within the gallery
-        const videos = document.querySelectorAll('#gallery .vid');
+// vidPause.js — Pauses other videos when one starts playing
+// Listens for 'projectsRendered' so it works with dynamically added videos
 
-        // Add event listener to each video element
-        videos.forEach(video => {
-            video.addEventListener('play', function() {
-                // Pause all other videos
-                videos.forEach(otherVideo => {
-                    if (otherVideo !== video) {
-                        otherVideo.pause();
-                    }
-                });
-            });
-        });
+function initVidPause() {
+  const videos = document.querySelectorAll('#gallery .vid');
+
+  videos.forEach(video => {
+    video.addEventListener('play', function () {
+      videos.forEach(otherVideo => {
+        if (otherVideo !== video) {
+          otherVideo.pause();
+        }
+      });
     });
+  });
+}
+
+document.addEventListener('projectsRendered', initVidPause);
+document.addEventListener('DOMContentLoaded', initVidPause);

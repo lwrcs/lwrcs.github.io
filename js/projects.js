@@ -1,215 +1,265 @@
-// Define your projects as objects with properties
+// projects.js — Loads project data from JSON
+//
+// To add a new project, edit BOTH data/projects.json AND the fallbackData
+// array below. The JSON file is used when served from a web server;
+// the inline fallback is used when opening via file:// protocol.
+//
+// Schema per project:
+//   title    (string)  — Project title
+//   name     (string)  — Client or artist name (empty string if none)
+//   tags     (string[])— Filter tags
+//   poster   (string)  — Thumbnail image path
+//   src      (string)  — Video file path
+//   roles    (string)  — Role description
+//   links    (object)  — { platform: url } for streaming icons
+//   visible  (boolean) — Whether to show in the gallery
 
-/* Template
-{
-        title: "",
-        name: "",
-        tags: ["", "", "", "", "", ""],
-        poster: "img/thumbnail/.jpg",
-        src: "img/portfolio/.mov",
-        roles: "",
-        links: {
-            spotify: "",
-            soundcloud: "",
-            appleMusic: "",
-            youtube: "",
-            tidal: "",
-            deezer: ""
-        },
-        visible: true
-    },
-    */
+var projects = [];
 
-const projects = [
+// Inline fallback data (mirrors data/projects.json)
+var fallbackData = [
   {
-    title: "6-Ball Coin Collector Showcase",
-    name: "District VI",
-    tags: ["project", "3d", "anim", "promo"],
-    poster: "img/thumbnail/districtvi.jpg",
-    src: "img/portfolio/District VI Animation.mp4",
-    roles: "3D Modeling/Animation, Sound Design",
-    links: {
-      vimeo: "https://vimeo.com/924164176",
+    "title": "\"BRAG\" Music Video",
+    "name": "K33G",
+    "tags": ["project", "3d", "mv"],
+    "poster": "img/thumbnail/districtvi.jpg",
+    "src": "img/portfolio/bragvideo.mp4",
+    "roles": "Editing, Color Grading, Title Cards",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=CuasIJncvRY"
     },
-    visible: true,
+    "visible": true
   },
   {
-    title: "Club Promotion Animation",
-    name: "BrainChildLabs",
-    tags: ["project", "3d", "anim", "promo"],
-    poster: "img/thumbnail/brainchild.jpg",
-    src: "img/portfolio/brainchildvisual-4k.mp4",
-    roles: "3D Modeling/Animation, Sound Design",
-    visible: true,
-  },
-  {
-    title: "Animated Music Video",
-    name: "1nonly",
-    tags: ["3d", "anim", "mv", "comm"],
-    poster: "img/thumbnail/1nonly.jpg",
-    src: "img/portfolio/skate music video.mov",
-    roles: "Character Modeling, Environment Design, Rigging, Animation",
-    visible: true,
-  },
-  {
-    title: "<3 Character",
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal"],
-    poster: "img/thumbnail/lwrcs wavy.jpg",
-    src: "img/portfolio/lwrcs wavy.mp4",
-    roles: "Character Animation",
-    visible: false,
-  },
-  {
-    title: "DataBeasts Animation",
-    tags: ["3d", "anim", "personal"],
-    poster: "img/thumbnail/db.jpg",
-    src: "img/portfolio/db sequence.mp4",
-    roles: "Character Modeling, Environment Design, Rigging, Animation",
-    visible: false,
-  },
-  {
-    title: "Merch Promotional Animation",
-    name: "Meek Mill",
-    tags: ["3d", "anim", "comm", "promo"],
-    poster: "img/thumbnail/meek merch.jpg",
-    src: "img/portfolio/meek merch.mp4",
-    roles: "3D Modeling and Animation",
-    visible: false,
-  },
-  {
-    title: "Seigaiha Edit",
-    name: "B.A. Balis",
-    tags: ["video", "promo"],
-    poster: "img/thumbnail/seig.jpg",
-    src: "img/portfolio/seig.mov",
-    roles: "Filming, Editing, Color Grading",
-    visible: false,
-  },
-  {
-    title: "Ice Logo",
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal", "logo"],
-    poster: "img/thumbnail/lwrcs_ice_rotate_loop.jpg",
-    src: "img/portfolio/lwrcs_ice_rotate_loop.mp4",
-    roles: "Logo Animation",
-    visible: false,
-  },
-  {
-    title: "Pop-Up Shop Promotional Animation",
-    name: "Torture",
-    tags: ["3d", "anim", "comm", "promo"],
-    poster: "img/thumbnail/TORTURE ARCADE.jpg",
-    src: "img/portfolio/TORTURE ARCADE.mp4",
-    roles: "Product Showcase, 3D Animation, Environment Design",
-    visible: false,
-  },
-  {
-    title: "Trash Visual",
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal", "mv", "music", "mymusic"],
-    poster: "img/thumbnail/trashworld.jpg",
-    src: "img/portfolio/trashworld-edit.mp4",
-    roles: "Animation, Music Production",
-    visible: false,
-  },
-  {
-    title: "Mystery Box Promotional Animation",
-    name: "Torture",
-    tags: ["3d", "anim", "comm", "promo"],
-    poster: "img/thumbnail/torture mystery.jpg",
-    src: "img/portfolio/torture mystery.mp4",
-    roles: "3D Modeling, Animation, Sound design",
-    visible: true,
-  },
-  {
-    title: "Cyborg's Journey",
-    name: "",
-    tags: ["3d", "anim", "comm"],
-    poster: "img/thumbnail/lions.jpg",
-    src: "img/portfolio/cyborg grown up_2.mp4",
-    roles: "3D Animation, Sound Design, Environment Design",
-    links: {
+    "title": "6-Ball Coin Collector Showcase",
+    "name": "District VI",
+    "tags": ["project", "3d", "anim", "promo"],
+    "poster": "img/thumbnail/districtvi.jpg",
+    "src": "img/portfolio/District VI Animation.mp4",
+    "roles": "3D Modeling/Animation, Sound Design",
+    "links": {
+      "vimeo": "https://vimeo.com/924164176"
     },
-    visible: false,
+    "visible": true
   },
   {
-    title: "Drowning",
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal"],
-    poster: "img/thumbnail/drowning.jpg",
-    src: "img/portfolio/drowning.mp4",
-    roles: "Character Design",
-    links: {
+    "title": "Club Promotion Animation",
+    "name": "BrainChildLabs",
+    "tags": ["project", "3d", "anim", "promo"],
+    "poster": "img/thumbnail/brainchild.jpg",
+    "src": "img/portfolio/brainchildvisual-4k.mp4",
+    "roles": "3D Modeling/Animation, Sound Design",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "Animated Music Video",
+    "name": "1nonly",
+    "tags": ["3d", "anim", "mv", "comm"],
+    "poster": "img/thumbnail/1nonly.jpg",
+    "src": "img/portfolio/skate music video.mov",
+    "roles": "Character Modeling, Environment Design, Rigging, Animation",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "<3 Character",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "img/thumbnail/lwrcs wavy.jpg",
+    "src": "img/portfolio/lwrcs wavy.mp4",
+    "roles": "Character Animation",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "DataBeasts Animation",
+    "name": "",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "img/thumbnail/db.jpg",
+    "src": "img/portfolio/db sequence.mp4",
+    "roles": "Character Modeling, Environment Design, Rigging, Animation",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Merch Promotional Animation",
+    "name": "Meek Mill",
+    "tags": ["3d", "anim", "comm", "promo"],
+    "poster": "img/thumbnail/meek merch.jpg",
+    "src": "img/portfolio/meek merch.mp4",
+    "roles": "3D Modeling and Animation",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Seigaiha Edit",
+    "name": "B.A. Balis",
+    "tags": ["video", "promo"],
+    "poster": "img/thumbnail/seig.jpg",
+    "src": "img/portfolio/seig.mov",
+    "roles": "Filming, Editing, Color Grading",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Ice Logo",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal", "logo"],
+    "poster": "img/thumbnail/lwrcs_ice_rotate_loop.jpg",
+    "src": "img/portfolio/lwrcs_ice_rotate_loop.mp4",
+    "roles": "Logo Animation",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Pop-Up Shop Promotional Animation",
+    "name": "Torture",
+    "tags": ["3d", "anim", "comm", "promo"],
+    "poster": "img/thumbnail/TORTURE ARCADE.jpg",
+    "src": "img/portfolio/TORTURE ARCADE.mp4",
+    "roles": "Product Showcase, 3D Animation, Environment Design",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Trash Visual",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal", "mv", "music", "mymusic"],
+    "poster": "img/thumbnail/trashworld.jpg",
+    "src": "img/portfolio/trashworld-edit.mp4",
+    "roles": "Animation, Music Production",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Mystery Box Promotional Animation",
+    "name": "Torture",
+    "tags": ["3d", "anim", "comm", "promo"],
+    "poster": "img/thumbnail/torture mystery.jpg",
+    "src": "img/portfolio/torture mystery.mp4",
+    "roles": "3D Modeling, Animation, Sound design",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "Cyborg's Journey",
+    "name": "",
+    "tags": ["3d", "anim", "comm"],
+    "poster": "img/thumbnail/lions.jpg",
+    "src": "img/portfolio/cyborg grown up_2.mp4",
+    "roles": "3D Animation, Sound Design, Environment Design",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Drowning",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "img/thumbnail/drowning.jpg",
+    "src": "img/portfolio/drowning.mp4",
+    "roles": "Character Design",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Glass Shatter Logo",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal", "logo"],
+    "poster": "img/thumbnail/glass0015-0200.jpg",
+    "src": "img/portfolio/glass0015-0200.mp4",
+    "roles": "Logo Animation",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "Friday the 13th Merch Promotional Animation",
+    "name": "Torture",
+    "tags": ["3d", "anim", "comm", "promo"],
+    "poster": "img/thumbnail/torture friday.jpg",
+    "src": "img/portfolio/torture friday.mp4",
+    "roles": "Animation, Sound Design",
+    "links": {},
+    "visible": false
+  },
+  {
+    "title": "Rhinestone Hoodie Animation",
+    "name": "Torture",
+    "tags": ["3d", "anim", "comm", "promo"],
+    "poster": "img/thumbnail/Torture Rhinestone.jpg",
+    "src": "img/portfolio/Torture Rhinestone.mov",
+    "roles": "3D Modeling, Animation",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "\"lifetime\" Visual",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal", "mv", "music", "mymusic"],
+    "poster": "img/thumbnail/lifetime.jpg",
+    "src": "img/portfolio/lifetime.mov",
+    "roles": "Character Animation, Rigging, Environment Design, Music Production",
+    "links": {
+      "spotify": "https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749",
+      "soundcloud": "https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+      "appleMusic": "https://music.apple.com/us/album/lifetime/1684156859?i=1684156863",
+      "youtube": "https://www.youtube.com/watch?v=ig8_XM-PW7A",
+      "tidal": "https://tidal.com/browse/track/290945229",
+      "deezer": "https://deezer.page.link/9MdYfpksgKXMLN9YA"
     },
-    visible: false,
+    "visible": false
   },
   {
-    title: "Glass Shatter Logo",
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal", "logo"],
-    poster: "img/thumbnail/glass0015-0200.jpg",
-    src: "img/portfolio/glass0015-0200.mp4",
-    roles: "Logo Animation",
-    visible: true,
-  },
-  {
-    title: "Friday the 13th Merch Promotional Animation",
-    name: "Torture",
-    tags: ["3d", "anim", "comm", "promo"],
-    poster: "img/thumbnail/torture friday.jpg",
-    src: "img/portfolio/torture friday.mp4",
-    roles: "Animation, Sound Design",
-    visible: false,
-  },
-  {
-    title: "Rhinestone Hoodie Animation",
-    name: "Torture",
-    tags: ["3d", "anim", "comm", "promo"],
-    poster: "img/thumbnail/Torture Rhinestone.jpg",
-    src: "img/portfolio/Torture Rhinestone.mov",
-    roles: "3D Modeling, Animation",
-    visible: true,
-  },
-  {
-    title: '"lifetime" Visual',
-    name: "lwrcs",
-    tags: ["3d", "anim", "personal", "mv", "music", "mymusic"],
-    poster: "img/thumbnail/lifetime.jpg",
-    src: "img/portfolio/lifetime.mov",
-    roles: "Character Animation, Rigging, Environment Design, Music Production",
-    links: {
-      spotify:
-        "https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749",
-      soundcloud:
-        "https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-      appleMusic:
-        "https://music.apple.com/us/album/lifetime/1684156859?i=1684156863",
-      youtube: "https://www.youtube.com/watch?v=ig8_XM-PW7A",
-      tidal: "https://tidal.com/browse/track/290945229",
-      deezer: "https://deezer.page.link/9MdYfpksgKXMLN9YA",
+    "title": "\"CatBoyDeathSquad\" Visual",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "mv", "personal", "mymusic"],
+    "poster": "img/thumbnail/catboy.jpg",
+    "src": "img/portfolio/catboy.mp4",
+    "roles": "Music Production & Recording, 3D Animation",
+    "links": {
+      "spotify": "https://open.spotify.com/track/0OzpMO91x0BJpTVmckJbj9?si=f18951e4cf3c4cec",
+      "soundcloud": "https://soundcloud.com/lwrcs/catboydeathsquad-ft-sweatcult-xokeegan-zzbleed",
+      "appleMusic": "https://music.apple.com/us/album/catboydeathsquad-feat-sweatcult-xokeegan-zzbleed/1641044836?i=1641044837",
+      "youtube": "https://www.youtube.com/watch?v=2nckiRMGhaE",
+      "tidal": "https://tidal.com/browse/track/244269837",
+      "deezer": "https://deezer.page.link/gi4jBxfzJYUgVWDS6"
     },
-    visible: false,
-  },
-  {
-    title: '"CatBoyDeathSquad" Visual',
-    name: "lwrcs",
-    tags: ["3d", "anim", "mv", "personal", "mymusic"],
-    poster: "img/thumbnail/catboy.jpg",
-    src: "img/portfolio/catboy.mp4",
-    roles: "Music Production & Recording, 3D Animation",
-    links: {
-      spotify:
-        "https://open.spotify.com/track/0OzpMO91x0BJpTVmckJbj9?si=f18951e4cf3c4cec",
-      soundcloud:
-        "https://soundcloud.com/lwrcs/catboydeathsquad-ft-sweatcult-xokeegan-zzbleed",
-      appleMusic:
-        "https://music.apple.com/us/album/catboydeathsquad-feat-sweatcult-xokeegan-zzbleed/1641044836?i=1641044837",
-      youtube: "https://www.youtube.com/watch?v=2nckiRMGhaE",
-      tidal: "https://tidal.com/browse/track/244269837",
-      deezer: "https://deezer.page.link/gi4jBxfzJYUgVWDS6",
-    },
-    visible: false,
-  },
-  // Add more projects as needed
+    "visible": false
+  }
 ];
+
+// Exposed as a global promise so renderProjects.js can await it.
+// Tries to load from JSON file first; falls back to inline data.
+window.projectsReady = new Promise(function (resolve) {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "data/projects.json", true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if ((xhr.status === 200 || xhr.status === 0) && xhr.responseText) {
+          try {
+            projects = JSON.parse(xhr.responseText);
+          } catch (err) {
+            console.warn("Failed to parse projects.json, using fallback data.");
+            projects = fallbackData;
+          }
+        } else {
+          console.warn("Could not load projects.json, using fallback data.");
+          projects = fallbackData;
+        }
+        resolve();
+      }
+    };
+    xhr.onerror = function () {
+      console.warn("XHR error loading projects.json, using fallback data.");
+      projects = fallbackData;
+      resolve();
+    };
+    xhr.send();
+  } catch (e) {
+    // XHR completely blocked (e.g. strict file:// policy)
+    console.warn("XHR blocked, using fallback data.");
+    projects = fallbackData;
+    resolve();
+  }
+});

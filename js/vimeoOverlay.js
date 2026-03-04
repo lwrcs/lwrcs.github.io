@@ -1,17 +1,23 @@
+// vimeoOverlay.js — Vimeo player overlay integration
+// Only runs if the Vimeo SDK is loaded on the page
+
 document.addEventListener('DOMContentLoaded', function () {
-    var iframes = document.querySelectorAll('iframe');
-    var overlays = document.querySelectorAll('.video-container .overlay');
+  if (typeof Vimeo === 'undefined' || !Vimeo.Player) return;
 
-    iframes.forEach(function (iframe, index) {
-        var player = new Vimeo.Player(iframe);
-        var overlay = overlays[index]; // Assuming each iframe has a corresponding overlay
+  const iframes = document.querySelectorAll('iframe');
+  const overlays = document.querySelectorAll('.video-container .overlay');
 
-        player.on('play', function () {
-            overlay.style.opacity = '0'; // Prevent dimming by adjusting the opacity
-        });
+  iframes.forEach(function (iframe, index) {
+    const player = new Vimeo.Player(iframe);
+    const overlay = overlays[index];
+    if (!overlay) return;
 
-        player.on('pause', function () {
-            overlay.style.opacity = ''; // Reset the opacity
-        });
+    player.on('play', function () {
+      overlay.style.opacity = '0';
     });
+
+    player.on('pause', function () {
+      overlay.style.opacity = '';
+    });
+  });
 });

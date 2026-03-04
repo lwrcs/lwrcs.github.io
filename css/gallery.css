@@ -1,0 +1,214 @@
+/* ============================================
+   GALLERY — Project grid, video containers,
+   captions, bottom-bar icons, filter buttons
+   ============================================ */
+
+/* --- Gallery Layout --- */
+
+#gallery-container {
+  padding: 20px;
+  margin-top: 70px;
+}
+
+#gallery {
+  column-count: 3;
+  column-gap: 20px;
+  text-align: center;
+  position: relative;
+  width: 100%;
+}
+
+/* --- Video / Image Containers --- */
+
+.image-container,
+.video-container {
+  display: block;
+  position: relative;
+}
+
+img,
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 20px;
+  transition: filter 0.5s ease, transform 0.25s ease;
+}
+
+.vid {
+  max-width: 100%;
+}
+
+.image-container:hover img,
+.video-container:hover video {
+  filter: brightness(0.2);
+  transition: filter 0.5s ease;
+}
+
+/* --- Captions --- */
+
+.caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0);
+  color: rgb(255, 255, 255);
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  opacity: 0;
+  font-size: 20px;
+  border-radius: 24px;
+  font-family: "Londrina";
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.2s ease, filter 0.5s ease;
+  mix-blend-mode: difference;
+}
+
+.video-container:hover .caption {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* --- Bottom Bar (streaming icons) --- */
+
+.video-container .bottom-bar {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  padding: 5px 0;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  margin-bottom: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.5s ease;
+}
+
+.video-container .bottom-bar .icon {
+  pointer-events: all;
+  translate: 0;
+  opacity: 0;
+  width: 45px;
+  height: 45px;
+  transition: opacity 0.3s ease, scale 0.3s ease;
+}
+
+.bottom-bar a {
+  margin: 0 3px;
+}
+
+.video-container:hover .bottom-bar {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.video-container:hover .bottom-bar .icon {
+  animation: iconAnimationIn 0.3s ease forwards;
+  animation-delay: calc(var(--icon-index) * 0.05s);
+}
+
+.video-container:not(:hover) .bottom-bar .icon {
+  animation: iconAnimationOut 0.2s ease forwards;
+}
+
+.video-container .bottom-bar .icon:nth-child(1) { --icon-index: 1; }
+.video-container .bottom-bar .icon:nth-child(2) { --icon-index: 2; }
+.video-container .bottom-bar .icon:nth-child(3) { --icon-index: 3; }
+.video-container .bottom-bar .icon:nth-child(4) { --icon-index: 4; }
+.video-container .bottom-bar .icon:nth-child(5) { --icon-index: 5; }
+.video-container .bottom-bar .icon:nth-child(6) { --icon-index: 6; }
+
+.icon {
+  z-index: 200;
+  scale: 75%;
+  transition: scale 0.3s ease;
+}
+
+.icon:hover {
+  scale: 100%;
+  transition: scale 0.3s ease;
+}
+
+/* --- Tag Filter Buttons --- */
+
+#tag-filter-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  margin: auto;
+  margin-top: 100px;
+  max-width: 80%;
+}
+
+#tag-filter {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-button {
+  background-color: var(--color2);
+  color: var(--bgcolor);
+  padding: 10px 20px;
+  font-family: "Londrina", sans-serif;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s, transform 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  margin: 5px;
+}
+
+.filter-button:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 12px rgba(0, 0, 0, 0.2);
+}
+
+.filter-button.active {
+  background-color: var(--color1);
+  color: var(--bgcolor);
+}
+
+/* --- Portrait (Mobile) Overrides --- */
+
+@media (orientation: portrait) {
+  #gallery {
+    column-count: 1;
+  }
+
+  .image-container:hover img,
+  .video-container:hover video {
+    transform: none;
+  }
+
+  .image-container:hover .caption,
+  .video-container:hover .caption {
+    opacity: 0;
+  }
+
+  .caption {
+    z-index: -100;
+  }
+}
+
+@media (max-width: 600px) {
+  #tag-filter {
+    flex-direction: column;
+    align-items: center;
+  }
+}

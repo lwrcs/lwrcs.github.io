@@ -1,67 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>lwrcs | Visual & Audio</title>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="styles.css">
-    <script>
-        // Redirect to the visuals page immediately
-        window.location.href = "../visuals/index.html";
-    </script>
-
+    <meta name="description" content="lwrcs — 3D animation, music video production, and visual design portfolio." />
+    <meta property="og:title" content="lwrcs | Visual & Audio" />
+    <meta property="og:description" content="3D animation, music video production, and visual design portfolio." />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-    <div id="loader-wrapper">
+    <!-- Loader Animation -->
+    <div id="loader-wrapper" role="status" aria-label="Loading">
         <div class="blob">
             <span></span>
             <span></span>
             <span></span>
             <span></span>
             <div class="content">
-                <h2>
-                    Loading...
-                </h2>
+                <h2>Loading...</h2>
             </div>
         </div>
     </div>
+
     <!-- Navigation Desktop -->
     <div class="nav-wrap">
         <header>
-            <h1 class="logo"><a href="/">lwrcs</a></h1>
-            <nav>
-                <ul>
-                    <script src="js/menu.js" defer></script>
-                </ul>
+            <h1 class="logo"><a href="index.html">lwrcs</a></h1>
+            <nav aria-label="Main navigation">
+                <ul></ul>
             </nav>
             <div class="nav-gradient"></div>
         </header>
     </div>
 
-    <!-- Navigation Bar Mobile -->
-    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu">
-    <label for="dropdown-menu" class="dropdown-label">
+    <!-- Navigation Mobile -->
+    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu" aria-hidden="true" />
+    <label for="dropdown-menu" class="dropdown-label" aria-label="Toggle navigation menu">
         <div class="hamburger">
             <span class="bar"></span>
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
     </label>
-    <ul class="dropdown-menu">
-        <script src="js/menu.js" defer></script>
-    </ul>
+    <ul class="dropdown-menu" role="navigation" aria-label="Mobile navigation"></ul>
 
     <!-- Main Content -->
-
-        <div class="homepage-container">
-            <div class="visuals-section">
-                <a href="visuals.html" class="button">Visuals</a>
-            </div>
-            <div class="music-section">
-                <a href="music.html" class="button">Music</a>
-            </div>
+    <div class="homepage-container">
+        <div class="visuals-section">
+            <a href="visuals/index.html" class="button">Visuals</a>
         </div>
+        <div class="music-section">
+            <a href="music/index.html" class="button">Music</a>
+        </div>
+    </div>
 
     <!-- Footer Section -->
     <div class="footer">
@@ -70,10 +65,9 @@
         </div>
     </div>
 
-    </div>
-
     <!-- JavaScript -->
-    <script src="js/hover.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/menu.js"></script>
     <script src="js/loader.js"></script>
 </body>
 

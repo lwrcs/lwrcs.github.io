@@ -1,0 +1,238 @@
+/* ============================================
+   ANIMATIONS — Keyframes, loader, transitions
+   ============================================ */
+
+/* --- Loader --- */
+
+#loader-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  background: white;
+}
+
+.blob {
+  position: relative;
+  margin: 100px;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Genesis";
+}
+
+.blob span:nth-child(1) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s;
+  border: none;
+  background: rgb(255, 255, 255);
+  box-shadow: 5px 5px 10px rgb(129, 129, 129);
+  animation: rot 1s linear infinite, shapeshift 2s linear infinite,
+    fade 2s ease infinite;
+}
+
+.blob span:nth-child(2) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s;
+  border: none;
+  background: rgb(255, 255, 255);
+  box-shadow: 5px 5px 10px rgb(129, 129, 129);
+  animation: rot 1.2s linear infinite, shapeshift 2s linear infinite,
+    fade 2s ease infinite;
+}
+
+.blob span:nth-child(3) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s;
+  border: none;
+  background: rgb(255, 255, 255);
+  box-shadow: 5px 5px 10px rgb(129, 129, 129);
+  animation: rotRev 2s linear infinite, shapeshift 2s linear infinite,
+    fade 2s ease infinite;
+}
+
+.blob span:nth-child(4) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255, 255, 255);
+  box-shadow: 5px 5px 10px rgb(255, 255, 255);
+  animation: rotRev 2.2s linear infinite, scale 2s ease infinite;
+}
+
+.blob .content {
+  position: relative;
+  font-size: 0.8rem;
+  padding: 40px 60px;
+  color: #cfcfcffb;
+  text-align: center;
+  transition: 0.5s;
+  z-index: 1000;
+  cursor: default;
+  animation: circularMotion 2s steps(12, start) infinite, fade 2s ease infinite;
+}
+
+/* --- Back to Top Button --- */
+
+.b2t-image {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: block;
+  background-color: transparent;
+  border-color: transparent;
+  border: none;
+  opacity: 0;
+  transition: opacity 1s;
+  cursor: pointer;
+}
+
+.b2t-image img {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.b2t-image:hover img {
+  opacity: 1;
+  transform: scale(1.2);
+  transition: transform 0.5s ease;
+  animation: scaleButton 2s infinite;
+  cursor: pointer;
+}
+
+/* --- Keyframes --- */
+
+@keyframes fadeDown {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes rot {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes rotRev {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes shapeshift {
+  0%, 100% { border-radius: 60% 40% 60% 40% / 60% 40% 60% 40%; }
+  50% { border-radius: 50%; }
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+@keyframes circularMotion {
+  0% { transform: rotate(0deg) translateX(2px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(2px) rotate(-360deg); }
+}
+
+@keyframes scaleButton {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
+
+@keyframes moveAway {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
+}
+
+@keyframes condense {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes moveInAnimation {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes iconAnimationIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes iconAnimationOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes typewriter {
+  to { left: 100%; }
+}
+
+@keyframes blink {
+  to { background: transparent; }
+}
+
+@keyframes moveSideToSideLeft {
+  0% { transform: translateX(5px); }
+  50% { transform: translateX(10px); }
+  100% { transform: translateX(5px); }
+}
+
+@keyframes moveSideToSideRight {
+  0% { transform: translateX(-5px); }
+  50% { transform: translateX(-10px); }
+  100% { transform: translateX(-5px); }
+}
+
+/* --- Animation Utility Classes --- */
+
+.animate-move-away {
+  animation: moveAway 0.5s ease forwards;
+}
+
+.animate-condense {
+  animation: condense 0.5s ease forwards;
+}
+
+.animate-move-in {
+  animation: moveInAnimation 0.5s ease forwards;
+}
+
+.blinking {
+  animation: fade 1s steps(1, start) infinite;
+}
