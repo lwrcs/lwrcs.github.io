@@ -23,6 +23,12 @@
 
 /* Montserrat — primary typeface, all weights */
 @font-face {
+  src: url(fonts/LondrinaSolid-Regular.ttf);
+  font-family: "Londrina";
+  font-display: swap;
+}
+
+@font-face {
   src: url(fonts/montserrat/Montserrat-Thin.ttf);
   font-family: "Montserrat";
   font-weight: 100;
@@ -230,9 +236,22 @@ a {
     background-color: rgb(0, 0, 0);
   }
 
+  .logo,
+  .logo a {
+    color: #f0f0f0;
+  }
+
   .nav-wrap a {
-    color: var(--color2);
+    color: #f0f0f0;
     background-image: linear-gradient(to bottom, white, white);
+  }
+
+  nav {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+
+  .bar {
+    background: #f0f0f0;
   }
 
   .b2t-image img {
@@ -240,7 +259,7 @@ a {
   }
 
   .nav-gradient {
-    background: linear-gradient(to bottom, rgb(0, 0, 0), rgb(0, 0, 0), rgba(255, 0, 0, 0));
+    background: linear-gradient(to bottom, rgb(0, 0, 0), rgb(0, 0, 0), rgba(0, 0, 0, 0));
   }
 
   .type-text {
@@ -538,20 +557,21 @@ header {
 .logo {
   padding-top: 20px;
   padding-left: 15px;
-  font-family: var(--title-text);
-  font-weight: 800;
-  color: var(--color4);
+  font-family: "Londrina", sans-serif;
+  font-weight: 400;
+  color: #f0f0f0;
   opacity: 1;
   white-space: nowrap;
   text-transform: lowercase;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
 }
 
 .logo a {
   font-size: 60px;
-  color: var(--color4);
+  color: #f0f0f0;
   text-decoration: none;
-  font-weight: lighter;
+  font-family: "Londrina", sans-serif;
+  font-weight: 400;
 }
 
 nav {
@@ -563,7 +583,7 @@ nav {
   transform: scale(1, 0);
   transform-origin: top;
   transition: transform 250ms ease-in-out 250ms;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   z-index: 9999;
 }
 
@@ -588,7 +608,7 @@ nav a:hover {
 }
 
 .nav-wrap {
-  background-color: #ffffff;
+  background-color: rgb(0, 0, 0);
   position: fixed;
   top: 0;
   left: 0;
@@ -605,7 +625,7 @@ nav a:hover {
   -webkit-background-clip: text;
   background-clip: text;
   background-image: linear-gradient(to bottom, #00ffdd, rgb(0, 17, 255));
-  color: var(--color4);
+  color: #f0f0f0;
   transition: color 2s;
 }
 
@@ -622,9 +642,9 @@ nav a:hover {
   top: 64px;
   background: linear-gradient(
     to bottom,
-    rgb(255, 255, 255),
-    rgb(255, 255, 255),
-    rgba(255, 0, 0, 0)
+    rgb(0, 0, 0),
+    rgb(0, 0, 0),
+    rgba(0, 0, 0, 0)
   );
   z-index: -1;
 }
@@ -642,7 +662,7 @@ nav a:hover {
 .bar {
   width: 100%;
   height: 3px;
-  background: var(--color4);
+  background: #f0f0f0;
   display: block;
   position: absolute;
   transition: transform 0.3s ease-in-out;
@@ -719,7 +739,7 @@ ul.dropdown-menu a {
     position: fixed;
     top: 40px;
     right: 20px;
-    background-color: #ffffffde;
+    background-color: #1a1a1ade;
     width: 60%;
     height: 35vh;
     z-index: 2000;
@@ -750,7 +770,6 @@ ul.dropdown-menu a {
     left: 0;
     width: 100%;
     height: 64px;
-    background-color: #ffffff;
     z-index: 999;
     display: flex;
     align-items: center;
@@ -1104,19 +1123,17 @@ video {
    expand into full-width project containers
    ============================================ */
 
-/* --- Card grid (replaces column layout) --- */
+/* --- Card masonry layout (JS-positioned absolute items) --- */
 
 #gallery.alt-gallery {
-  column-count: unset;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  position: relative;
+  width: 100%;
 }
 
 /* --- Individual card (thumbnail button) --- */
 
 .alt-card {
-  position: relative;
+  position: absolute;
   cursor: pointer;
   overflow: hidden;
   border-radius: 8px;
@@ -1138,6 +1155,12 @@ video {
   margin-bottom: 0;
   pointer-events: none;
   transition: filter 0.4s ease;
+}
+
+/* Force-crop letterboxed YouTube thumbnails (4:3 with black bars) to 16:9 */
+.alt-thumb-crop {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
 }
 
 .alt-card:hover .alt-thumb {
@@ -1248,6 +1271,9 @@ video {
 .alt-video-area {
   flex: 1.4;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* For iframes (YouTube), keep 16:9. For native <video>, JS sets the
@@ -1264,6 +1290,7 @@ video.alt-video-player {
   /* Native videos: height is auto, aspect-ratio set by JS on metadata load */
   height: auto;
 }
+
 
 /* --- Description area --- */
 
@@ -1291,10 +1318,21 @@ video.alt-video-player {
 
 .alt-desc-roles {
   font-family: var(--body-text);
+  font-weight: 600;
+  font-size: 13px;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.alt-desc-text {
+  font-family: var(--body-text);
   font-weight: 400;
   font-size: 15px;
-  color: #555;
-  line-height: 1.6;
+  color: #444;
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* --- Links bar --- */
@@ -1333,9 +1371,14 @@ video.alt-video-player {
 @media (max-width: 768px) {
   .alt-content-wrap {
     flex-direction: column;
+    align-items: center;
   }
 
-  .alt-video-area,
+  .alt-video-area {
+    flex: unset;
+    width: 100%;
+  }
+
   .alt-desc-area {
     flex: unset;
     width: 100%;
@@ -1343,11 +1386,6 @@ video.alt-video-player {
 
   .alt-desc-title {
     font-size: 22px;
-  }
-
-  #gallery.alt-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
   }
 }
 
@@ -1376,7 +1414,11 @@ video.alt-video-player {
   }
 
   .alt-desc-roles {
-    color: #999;
+    color: #888;
+  }
+
+  .alt-desc-text {
+    color: #bbb;
   }
 
   .alt-links-bar {

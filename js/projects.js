@@ -10,7 +10,8 @@
 //   tags     (string[])— Filter tags
 //   poster   (string)  — Thumbnail image path
 //   src      (string)  — Video file path
-//   roles    (string)  — Role description
+//   roles    (string)  — Short role tagline (shown as subtitle)
+//   description (string) — Longer project description paragraph (shown in expanded view)
 //   links    (object)  — { platform: url } for streaming icons
 //   visible  (boolean) — Whether to show in the gallery
 
@@ -19,14 +20,117 @@ var projects = [];
 // Inline fallback data (mirrors data/projects.json)
 var fallbackData = [
   {
+    "title": "\"Boulder\" Music Video",
+    "name": "K33G",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=gFRn_rw8GuY"
+    },
+    "visible": true
+  },
+  {
+    "title": "Superman Animated Music Video",
+    "name": "Bryce Vine Feat. Tony Hawk + Goldfinger",
+    "tags": ["3d", "anim", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Lead 3D Artist / Editor / Colorist",
+    "description": "Collaborated directly with the director on this animated music video. Handled all character modeling and rigging, built the majority of the environments, managed scene assembly and character setup, performed animation cleanup, and delivered the final renders, color grade, and edit. Coordinated with a hired environment artist and animator for supplementary work.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=5jd-9iHlUtU"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"GLITCHY\" Music Video",
+    "name": "K33G",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=PzbyAy8FBhg"
+    },
+    "visible": true
+  },
+  {
+    "title": "Close to You Animation",
+    "name": "PinkPantheress",
+    "tags": ["3d", "anim", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "3D Animator",
+    "description": "Contributed 3D animation for select scenes in the official music video, including the heart-shaped butterfly sequence and the book slam on the table.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=10j4rU0ltG4"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"L8R!!\" Music Video",
+    "name": "Cho",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=5teKu_b6Hng"
+    },
+    "visible": true
+  },
+  {
     "title": "\"BRAG\" Music Video",
     "name": "K33G",
     "tags": ["project", "3d", "mv"],
-    "poster": "img/thumbnail/districtvi.jpg",
-    "src": "img/portfolio/bragvideo.mp4",
-    "roles": "Editing, Color Grading, Title Cards",
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, color grading, and title card design.",
     "links": {
       "youtube": "https://www.youtube.com/watch?v=CuasIJncvRY"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"STG\" Music Video",
+    "name": "Cho",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=CIQ1uabFLyk"
+    },
+    "visible": true
+  },
+  {
+    "title": "Tamagotchi Animation",
+    "name": "Kidlords",
+    "tags": ["3d", "anim", "comm"],
+    "poster": "img/portfolio/kidlords_tamagotchi.png",
+    "src": "img/portfolio/kidlords_tamagotchi.mov",
+    "roles": "3D Animator",
+    "description": "Created 3D animation for the artist's visual content.",
+    "links": {},
+    "visible": true
+  },
+  {
+    "title": "\"r u srs\" Music Video",
+    "name": "gore_irl",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=Pz2oktl1Hnw"
     },
     "visible": true
   },
@@ -36,7 +140,8 @@ var fallbackData = [
     "tags": ["project", "3d", "anim", "promo"],
     "poster": "img/thumbnail/districtvi.jpg",
     "src": "img/portfolio/District VI Animation.mp4",
-    "roles": "3D Modeling/Animation, Sound Design",
+    "roles": "3D Modeler / Animator / Sound Designer",
+    "description": "Designed and animated a 3D product showcase for the coin collector series, including environment modeling and sound design.",
     "links": {
       "vimeo": "https://vimeo.com/924164176"
     },
@@ -48,7 +153,8 @@ var fallbackData = [
     "tags": ["project", "3d", "anim", "promo"],
     "poster": "img/thumbnail/brainchild.jpg",
     "src": "img/portfolio/brainchildvisual-4k.mp4",
-    "roles": "3D Modeling/Animation, Sound Design",
+    "roles": "3D Modeler / Animator / Sound Designer",
+    "description": "Created a promotional 3D animation for the club event, including modeling, animation, and sound design.",
     "links": {},
     "visible": true
   },
@@ -58,7 +164,8 @@ var fallbackData = [
     "tags": ["3d", "anim", "mv", "comm"],
     "poster": "img/thumbnail/1nonly.jpg",
     "src": "img/portfolio/skate music video.mov",
-    "roles": "Character Modeling, Environment Design, Rigging, Animation",
+    "roles": "3D Artist / Animator",
+    "description": "Built the full 3D pipeline for the animated music video — character modeling, environment design, rigging, and animation.",
     "links": {},
     "visible": true
   },
@@ -69,6 +176,7 @@ var fallbackData = [
     "poster": "img/thumbnail/lwrcs wavy.jpg",
     "src": "img/portfolio/lwrcs wavy.mp4",
     "roles": "Character Animation",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -79,6 +187,7 @@ var fallbackData = [
     "poster": "img/thumbnail/db.jpg",
     "src": "img/portfolio/db sequence.mp4",
     "roles": "Character Modeling, Environment Design, Rigging, Animation",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -89,6 +198,7 @@ var fallbackData = [
     "poster": "img/thumbnail/meek merch.jpg",
     "src": "img/portfolio/meek merch.mp4",
     "roles": "3D Modeling and Animation",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -99,6 +209,7 @@ var fallbackData = [
     "poster": "img/thumbnail/seig.jpg",
     "src": "img/portfolio/seig.mov",
     "roles": "Filming, Editing, Color Grading",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -109,6 +220,7 @@ var fallbackData = [
     "poster": "img/thumbnail/lwrcs_ice_rotate_loop.jpg",
     "src": "img/portfolio/lwrcs_ice_rotate_loop.mp4",
     "roles": "Logo Animation",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -119,6 +231,7 @@ var fallbackData = [
     "poster": "img/thumbnail/TORTURE ARCADE.jpg",
     "src": "img/portfolio/TORTURE ARCADE.mp4",
     "roles": "Product Showcase, 3D Animation, Environment Design",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -129,6 +242,7 @@ var fallbackData = [
     "poster": "img/thumbnail/trashworld.jpg",
     "src": "img/portfolio/trashworld-edit.mp4",
     "roles": "Animation, Music Production",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -138,7 +252,8 @@ var fallbackData = [
     "tags": ["3d", "anim", "comm", "promo"],
     "poster": "img/thumbnail/torture mystery.jpg",
     "src": "img/portfolio/torture mystery.mp4",
-    "roles": "3D Modeling, Animation, Sound design",
+    "roles": "3D Modeler / Animator / Sound Designer",
+    "description": "Modeled, animated, and sound designed a promotional mystery box reveal animation.",
     "links": {},
     "visible": true
   },
@@ -149,6 +264,7 @@ var fallbackData = [
     "poster": "img/thumbnail/lions.jpg",
     "src": "img/portfolio/cyborg grown up_2.mp4",
     "roles": "3D Animation, Sound Design, Environment Design",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -159,6 +275,7 @@ var fallbackData = [
     "poster": "img/thumbnail/drowning.jpg",
     "src": "img/portfolio/drowning.mp4",
     "roles": "Character Design",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -168,7 +285,8 @@ var fallbackData = [
     "tags": ["3d", "anim", "personal", "logo"],
     "poster": "img/thumbnail/glass0015-0200.jpg",
     "src": "img/portfolio/glass0015-0200.mp4",
-    "roles": "Logo Animation",
+    "roles": "Logo Animator",
+    "description": "Designed and animated a glass-shattering logo reveal.",
     "links": {},
     "visible": true
   },
@@ -179,6 +297,7 @@ var fallbackData = [
     "poster": "img/thumbnail/torture friday.jpg",
     "src": "img/portfolio/torture friday.mp4",
     "roles": "Animation, Sound Design",
+    "description": "",
     "links": {},
     "visible": false
   },
@@ -188,7 +307,8 @@ var fallbackData = [
     "tags": ["3d", "anim", "comm", "promo"],
     "poster": "img/thumbnail/Torture Rhinestone.jpg",
     "src": "img/portfolio/Torture Rhinestone.mov",
-    "roles": "3D Modeling, Animation",
+    "roles": "3D Modeler / Animator",
+    "description": "Modeled and animated a 3D product showcase for the rhinestone hoodie collection.",
     "links": {},
     "visible": true
   },
@@ -199,6 +319,7 @@ var fallbackData = [
     "poster": "img/thumbnail/lifetime.jpg",
     "src": "img/portfolio/lifetime.mov",
     "roles": "Character Animation, Rigging, Environment Design, Music Production",
+    "description": "",
     "links": {
       "spotify": "https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749",
       "soundcloud": "https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
@@ -216,6 +337,7 @@ var fallbackData = [
     "poster": "img/thumbnail/catboy.jpg",
     "src": "img/portfolio/catboy.mp4",
     "roles": "Music Production & Recording, 3D Animation",
+    "description": "",
     "links": {
       "spotify": "https://open.spotify.com/track/0OzpMO91x0BJpTVmckJbj9?si=f18951e4cf3c4cec",
       "soundcloud": "https://soundcloud.com/lwrcs/catboydeathsquad-ft-sweatcult-xokeegan-zzbleed",

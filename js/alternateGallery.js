@@ -17,14 +17,16 @@
 
   document.addEventListener("projectsRendered", init);
 
-  var DURATION = 500; // ms — animation duration
-  var PADDING = 32;   // px — panel padding on each side
+  var DURATION = 250; // ms — animation duration
+  var PADDING = 20;   // px — panel padding on each side
+  var MARGIN = 24;    // px — gap between panel edge and viewport edge
 
   // --- State ---
   var expandedCard = null;
   var overlay = null;
   var expandedPanel = null;
   var lastThumbRect = null;
+  var lastThumbSrc = null;
   var isAnimating = false;
 
   function init() {
@@ -55,6 +57,7 @@
       title: card.getAttribute("data-title"),
       name: card.getAttribute("data-name"),
       roles: card.getAttribute("data-roles"),
+      description: card.getAttribute("data-description"),
       poster: card.getAttribute("data-poster"),
       src: card.getAttribute("data-src"),
       links: JSON.parse(card.getAttribute("data-links") || "{}"),
@@ -70,6 +73,7 @@
       width: thumbRect.width,
       height: thumbRect.height
     };
+    lastThumbSrc = thumb.src;
 
     // 2. Show overlay
     overlay.classList.add("active");
@@ -89,99 +93,219 @@
       }
     }
 
-    // 5. Mark clicked card as expanding
+    // 5. Mark clicked card as expanding & hide original thumb
     card.classList.add("alt-card-expanding");
 
     // 6. Build panel
     expandedPanel = buildExpandedPanel(data);
     document.body.appendChild(expandedPanel);
 
-    // 7. Measure the natural content height.
-    //    The video player's aspect-ratio CSS doesn't resolve off-screen, so we
-    //    use the thumbnail image (same content, already loaded) to get the real
-    //    aspect ratio and manually set the player's height during measurement.
-    var finalW = Math.min(window.innerWidth * 0.9, 1200);
+    // 7. Measure the natural content height off-screen.
+    var viewW = window.innerWidth;
+    var viewH = window.innerHeight;
+    var finalW = Math.min(viewW - MARGIN * 2, 1200);
 
-    // Get the video's true aspect ratio from the thumbnail
     var thumbImg = card.querySelector(".alt-thumb");
     var thumbNatW = thumbImg.naturalWidth || thumbImg.width;
     var thumbNatH = thumbImg.naturalHeight || thumbImg.height;
     var videoRatio = (thumbNatW && thumbNatH) ? thumbNatW / thumbNatH : 16 / 9;
+    var maxVideoH = Math.round(viewH * 0.82);
 
     expandedPanel.style.cssText =
       "visibility:hidden; opacity:0; position:fixed; top:-9999px; left:0;" +
       "width:" + finalW + "px; height:auto; max-height:none; overflow:hidden;" +
       "padding:" + PADDING + "px; box-sizing:border-box;";
-    expandedPanel.offsetHeight; // force layout
+    expandedPanel.offsetHeight;
 
-    // Set explicit pixel height on the video player based on its laid-out width
-    // and the thumbnail's aspect ratio
     var player = expandedPanel.querySelector(".alt-video-player");
     if (player) {
       var playerW = player.getBoundingClientRect().width;
-      player.style.height = Math.round(playerW / videoRatio) + "px";
-      expandedPanel.offsetHeight; // re-layout with correct video height
+      var naturalPlayerH = Math.round(playerW / videoRatio);
+      var playerH = Math.min(naturalPlayerH, maxVideoH);
+      player.style.height = playerH + "px";
+      player.style.aspectRatio = "unset";
+      if (playerH < naturalPlayerH) {
+        player.style.width = Math.round(playerH * videoRatio) + "px";
+      }
+      expandedPanel.offsetHeight;
     }
+
+    // Also measure where the video player will land in the final layout
+    var playerFinalRect = player ? player.getBoundingClientRect() : null;
 
     var inner = expandedPanel.querySelector(".alt-inner");
     var innerH = inner.offsetHeight;
     var finalH = innerH + PADDING * 2;
 
-    // Clear explicit player height so CSS takes over on-screen
-    if (player) player.style.height = "";
+    var maxPanelH = viewH - MARGIN * 2;
+    if (finalH > maxPanelH) finalH = maxPanelH;
 
-    // Center vertically and horizontally
-    var viewH = window.innerHeight;
-    var finalTop = Math.round((viewH - finalH) / 2);
-    var finalLeft = Math.round((window.innerWidth - finalW) / 2);
+    var finalTop = Math.max(MARGIN, Math.round((viewH - finalH) / 2));
+    var finalLeft = Math.max(MARGIN, Math.round((viewW - finalW) / 2));
 
-    // 8. Snap panel to thumbnail position (no transition)
-    expandedPanel.style.cssText = "";
-    applyStyles(expandedPanel, {
+    // Compute the video player's final viewport position.
+    // During measurement the panel is at top:-9999px, so we offset by the
+    // difference between the measurement top and the actual finalTop.
+    var videoFinalRect = null;
+    if (playerFinalRect) {
+      var measuredPanelTop = expandedPanel.getBoundingClientRect().top;
+      var offsetY = finalTop - measuredPanelTop;
+      var offsetX = finalLeft - expandedPanel.getBoundingClientRect().left;
+      videoFinalRect = {
+        top: playerFinalRect.top + offsetY,
+        left: playerFinalRect.left + offsetX,
+        width: playerFinalRect.width,
+        height: playerFinalRect.height
+      };
+    }
+
+    // 8. Create a floating thumbnail clone that will animate from the
+    //    original thumbnail position to the final video player position.
+    var thumbClone = document.createElement("img");
+    thumbClone.src = thumb.src;
+    thumbClone.className = "alt-thumb-clone";
+    applyStyles(thumbClone, {
       position: "fixed",
-      zIndex: "2000",
-      boxSizing: "border-box",
+      zIndex: "2001",
       top: lastThumbRect.top + "px",
       left: lastThumbRect.left + "px",
       width: lastThumbRect.width + "px",
       height: lastThumbRect.height + "px",
       borderRadius: "8px",
-      padding: "0px",
-      overflow: "hidden",
-      opacity: "1"
+      objectFit: "cover",
+      pointerEvents: "none",
+      margin: "0",
+      padding: "0",
+      display: "block"
     });
+    document.body.appendChild(thumbClone);
 
-    expandedPanel.offsetHeight; // force reflow
+    // 9. Position the panel at final size immediately but transparent,
+    //    with the inner content hidden — it sits behind the thumbnail clone.
+    expandedPanel.style.cssText = "";
+    inner.style.opacity = "0";
+    var closeBtn = expandedPanel.querySelector(".alt-close-btn");
+    if (closeBtn) closeBtn.style.opacity = "0";
 
-    // 9. Animate to final position
-    expandedPanel.style.transition =
+    applyStyles(expandedPanel, {
+      position: "fixed",
+      zIndex: "2000",
+      boxSizing: "border-box",
+      top: finalTop + "px",
+      left: finalLeft + "px",
+      width: finalW + "px",
+      height: finalH + "px",
+      borderRadius: "12px",
+      padding: PADDING + "px",
+      overflow: "hidden",
+      opacity: "0"
+    });
+    expandedPanel.offsetHeight;
+
+    // 9b. Start loading the YouTube iframe now
+    var ytIframe = expandedPanel.querySelector("iframe[data-yt-src]");
+    if (ytIframe) {
+      ytIframe.src = ytIframe.getAttribute("data-yt-src");
+      ytIframe.removeAttribute("data-yt-src");
+    }
+
+    // 10. Animate the thumbnail clone to the video player's final position
+    //     Panel + content opacity are driven by a rAF loop tied to animation progress.
+    thumbClone.offsetHeight; // force reflow
+
+    var cloneTransition =
       "top " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
       "left " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
       "width " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
       "height " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
-      "border-radius " + DURATION + "ms ease, " +
-      "padding " + DURATION + "ms ease, " +
-      "opacity 0.3s ease";
+      "border-radius " + DURATION + "ms ease";
 
-    expandedPanel.style.top = finalTop + "px";
-    expandedPanel.style.left = finalLeft + "px";
-    expandedPanel.style.width = finalW + "px";
-    expandedPanel.style.height = finalH + "px";
-    expandedPanel.style.borderRadius = "12px";
-    expandedPanel.style.padding = PADDING + "px";
-    expandedPanel.style.overflow = "hidden";
+    thumbClone.style.transition = cloneTransition;
 
-    // 10. After animation, switch to height:auto for a perfect fit and re-center
-    setTimeout(function () {
-      if (expandedPanel) {
-        expandedPanel.style.transition = "none";
-        expandedPanel.style.height = "auto";
-        var newRect = expandedPanel.getBoundingClientRect();
-        var newTop = Math.round((window.innerHeight - newRect.height) / 2);
-        expandedPanel.style.top = newTop + "px";
+    if (videoFinalRect) {
+      thumbClone.style.top = videoFinalRect.top + "px";
+      thumbClone.style.left = videoFinalRect.left + "px";
+      thumbClone.style.width = videoFinalRect.width + "px";
+      thumbClone.style.height = videoFinalRect.height + "px";
+    }
+    thumbClone.style.borderRadius = "8px";
+
+    // 11. rAF loop — drive panel bg, content, and clone opacity from progress
+    var openStart = performance.now();
+    var panelRef = expandedPanel;
+    var innerRef = inner;
+    var closeBtnRef = closeBtn;
+    var cloneRef = thumbClone;
+    var isYouTube = !!ytIframe;
+
+    function openTick(now) {
+      var elapsed = now - openStart;
+      var t = Math.min(elapsed / DURATION, 1); // 0 → 1
+
+      // Panel background fades in over the full duration
+      if (panelRef) panelRef.style.opacity = String(t);
+
+      // Content and close button fade in with the same progress
+      if (innerRef) innerRef.style.opacity = String(t);
+      if (closeBtnRef) closeBtnRef.style.opacity = String(t);
+
+      if (!isYouTube) {
+        // Non-YouTube: clone stays fully visible, then drops out in the last 15%
+        var cloneOpacity = t < 0.85 ? 1 : 1 - ((t - 0.85) / 0.15);
+        cloneRef.style.opacity = String(Math.max(0, cloneOpacity));
+      }
+      // YouTube: clone stays at full opacity until animation is done
+
+      if (t < 1) {
+        requestAnimationFrame(openTick);
+      } else {
+        // Animation complete — finalize panel
+        if (!panelRef) return;
+
+        panelRef.style.transition = "none";
+        panelRef.style.height = "auto";
+        panelRef.style.overflow = "hidden";
+
+        var panelRect = panelRef.getBoundingClientRect();
+        var vH = window.innerHeight;
+        var vW = window.innerWidth;
+        var panelH = panelRect.height;
+
+        if (panelH > vH - MARGIN * 2) {
+          panelRef.style.height = (vH - MARGIN * 2) + "px";
+          panelRef.style.overflowY = "auto";
+          panelH = vH - MARGIN * 2;
+        }
+
+        var newTop = Math.max(MARGIN, Math.round((vH - panelH) / 2));
+        var newLeft = Math.max(MARGIN, Math.round((vW - panelRect.width) / 2));
+        panelRef.style.top = newTop + "px";
+        panelRef.style.left = newLeft + "px";
+
+        // Clear inline opacity so CSS takes over
+        if (innerRef) innerRef.style.opacity = "";
+        if (closeBtnRef) closeBtnRef.style.opacity = "";
+
+        // Fade out the clone 250ms after the panel is fully open
+        var cloneToFade = cloneRef;
+        setTimeout(function () {
+          fadeOutClone(cloneToFade);
+        }, 100);
+
         isAnimating = false;
       }
-    }, DURATION + 50);
+    }
+    requestAnimationFrame(openTick);
+  }
+
+  // ---- Helper: crossfade a thumbnail clone out and remove it ----
+  function fadeOutClone(clone) {
+    if (!clone || !clone.parentNode) return;
+    clone.style.transition = "opacity 0.2s ease";
+    clone.style.opacity = "0";
+    setTimeout(function () {
+      if (clone.parentNode) clone.parentNode.removeChild(clone);
+    }, 220);
   }
 
   // ---- Helper: apply multiple styles ----
@@ -192,6 +316,7 @@
       }
     }
   }
+
 
   // ---- Build the expanded project panel ----
   function buildExpandedPanel(data) {
@@ -227,10 +352,14 @@
     if (data.youtubeId) {
       var iframe = document.createElement("iframe");
       iframe.className = "alt-video-player";
-      iframe.src = "https://www.youtube.com/embed/" + data.youtubeId + "?autoplay=0&rel=0";
+      // Store the embed URL — we only set src after the panel is on-screen
+      // to avoid error 150/153 from off-screen or file:// loading.
+      iframe.setAttribute("data-yt-src",
+        "https://www.youtube.com/embed/" + data.youtubeId);
       iframe.setAttribute("frameborder", "0");
       iframe.setAttribute("allowfullscreen", "true");
-      iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
+      iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+      iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
       videoArea.appendChild(iframe);
     } else {
       var video = document.createElement("video");
@@ -271,10 +400,17 @@
     }
 
     if (data.roles) {
-      var p = document.createElement("p");
-      p.className = "alt-desc-roles";
-      p.innerHTML = "<strong>Roles:</strong> " + data.roles;
-      descArea.appendChild(p);
+      var rolesP = document.createElement("p");
+      rolesP.className = "alt-desc-roles";
+      rolesP.textContent = data.roles;
+      descArea.appendChild(rolesP);
+    }
+
+    if (data.description) {
+      var descP = document.createElement("p");
+      descP.className = "alt-desc-text";
+      descP.textContent = data.description;
+      descArea.appendChild(descP);
     }
 
     if (descSide === "left") {
@@ -315,41 +451,102 @@
     return panel;
   }
 
-  // ---- Close / collapse — animate back to thumbnail position ----
+  // ---- Close / collapse — animate thumbnail clone back to original position ----
   function closeExpanded() {
     if (!expandedCard || isAnimating) return;
     isAnimating = true;
 
     var targetRect = lastThumbRect;
+    var panelRef = expandedPanel;
 
     if (expandedPanel && targetRect) {
-      var currentRect = expandedPanel.getBoundingClientRect();
-      expandedPanel.style.transition = "none";
-      expandedPanel.style.top = currentRect.top + "px";
-      expandedPanel.style.left = currentRect.left + "px";
-      expandedPanel.style.width = currentRect.width + "px";
-      expandedPanel.style.height = currentRect.height + "px";
-      expandedPanel.style.overflow = "hidden";
+      // 1. Find the video player's current viewport position
+      var player = expandedPanel.querySelector(".alt-video-player");
+      var videoArea = expandedPanel.querySelector(".alt-video-area");
+      var startRect;
+      if (player) {
+        startRect = player.getBoundingClientRect();
+      } else if (videoArea) {
+        startRect = videoArea.getBoundingClientRect();
+      } else {
+        startRect = expandedPanel.getBoundingClientRect();
+      }
 
-      expandedPanel.offsetHeight; // force reflow
+      var inner = expandedPanel.querySelector(".alt-inner");
+      var closeBtn = expandedPanel.querySelector(".alt-close-btn");
 
-      expandedPanel.style.transition =
+      // 2. Create a thumbnail clone at the video player's current position
+      var thumbClone = document.createElement("img");
+      thumbClone.src = lastThumbSrc || "";
+      thumbClone.className = "alt-thumb-clone";
+      applyStyles(thumbClone, {
+        position: "fixed",
+        zIndex: "2001",
+        top: startRect.top + "px",
+        left: startRect.left + "px",
+        width: startRect.width + "px",
+        height: startRect.height + "px",
+        borderRadius: "8px",
+        objectFit: "cover",
+        pointerEvents: "none",
+        margin: "0",
+        padding: "0",
+        display: "block",
+        opacity: "0"
+      });
+      document.body.appendChild(thumbClone);
+      thumbClone.offsetHeight; // force reflow
+
+      // 3. Animate clone position via CSS transition
+      thumbClone.style.transition =
         "top " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
         "left " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
         "width " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
         "height " + DURATION + "ms cubic-bezier(0.4,0,0.2,1), " +
-        "border-radius " + DURATION + "ms ease, " +
-        "padding " + DURATION + "ms ease, " +
-        "opacity 0.35s ease " + (DURATION * 0.4) + "ms";
+        "border-radius " + DURATION + "ms ease";
 
-      expandedPanel.style.top = targetRect.top + "px";
-      expandedPanel.style.left = targetRect.left + "px";
-      expandedPanel.style.width = targetRect.width + "px";
-      expandedPanel.style.height = targetRect.height + "px";
-      expandedPanel.style.borderRadius = "8px";
-      expandedPanel.style.padding = "0px";
-      expandedPanel.style.overflow = "hidden";
-      expandedPanel.style.opacity = "0";
+      thumbClone.style.top = targetRect.top + "px";
+      thumbClone.style.left = targetRect.left + "px";
+      thumbClone.style.width = targetRect.width + "px";
+      thumbClone.style.height = targetRect.height + "px";
+      thumbClone.style.borderRadius = "8px";
+
+      // 4. rAF loop — drive all opacity from animation progress (reverse)
+      var closeStart = performance.now();
+
+      function closeTick(now) {
+        var elapsed = now - closeStart;
+        var t = Math.min(elapsed / DURATION, 1); // 0 → 1
+
+        // Panel bg + content fade out (1 → 0)
+        var fadeOut = String(1 - t);
+        if (panelRef) panelRef.style.opacity = fadeOut;
+        if (inner) inner.style.opacity = fadeOut;
+        if (closeBtn) closeBtn.style.opacity = fadeOut;
+
+        // Thumbnail clone fades in (0 → 1), then back out in the last 30%
+        var cloneOpacity;
+        if (t < 0.7) {
+          cloneOpacity = t / 0.7; // 0 → 1 over first 70%
+        } else {
+          cloneOpacity = 1 - ((t - 0.7) / 0.3); // 1 → 0 over last 30%
+        }
+        thumbClone.style.opacity = String(Math.max(0, cloneOpacity));
+
+        if (t < 1) {
+          requestAnimationFrame(closeTick);
+        } else {
+          // Done — clean up
+          if (thumbClone.parentNode) thumbClone.parentNode.removeChild(thumbClone);
+          if (panelRef && panelRef.parentNode) panelRef.parentNode.removeChild(panelRef);
+          var clones = document.querySelectorAll(".alt-thumb-clone");
+          for (var i = 0; i < clones.length; i++) {
+            if (clones[i].parentNode) clones[i].parentNode.removeChild(clones[i]);
+          }
+          isAnimating = false;
+        }
+      }
+      requestAnimationFrame(closeTick);
     }
 
     overlay.classList.remove("active");
@@ -367,16 +564,9 @@
 
     expandedCard.classList.remove("alt-card-expanding");
 
-    var panelRef = expandedPanel;
-    setTimeout(function () {
-      if (panelRef && panelRef.parentNode) {
-        panelRef.parentNode.removeChild(panelRef);
-      }
-      isAnimating = false;
-    }, DURATION + 100);
-
     expandedCard = null;
     expandedPanel = null;
     lastThumbRect = null;
+    lastThumbSrc = null;
   }
 })();
