@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var menuHTML =
     '<li><a href="' + prefix + 'visuals/index.html">Visuals</a></li>' +
-    '<!--<li><a href="' + prefix + 'music/index.html">Music</a></li>-->';
+    '<li><a href="' + prefix + 'music/index.html">Music</a></li>';
 
   var menuDiv = document.querySelector(".nav-wrap nav ul");
   var dropMenuDiv = document.querySelector("ul.dropdown-menu");
