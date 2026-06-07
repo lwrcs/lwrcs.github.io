@@ -43,6 +43,22 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && expandedCard) closeExpanded();
     });
+
+    // Auto-open a specific project when navigating from homepage
+    // Supports ?vid=<youtube-id> and ?title=<project-title> for local-video projects
+    var params = new URLSearchParams(window.location.search);
+    var vidId = params.get("vid");
+    var titleParam = params.get("title");
+    var targetCard = null;
+    if (vidId) {
+      targetCard = document.querySelector('.alt-card[data-youtube-id="' + vidId + '"]');
+    }
+    if (!targetCard && titleParam) {
+      targetCard = document.querySelector('.alt-card[data-title="' + titleParam + '"]');
+    }
+    if (targetCard) {
+      setTimeout(function () { targetCard.click(); }, 700);
+    }
   }
 
   // ---- Card click handler ----

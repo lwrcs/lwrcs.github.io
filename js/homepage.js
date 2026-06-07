@@ -5,6 +5,41 @@
 
   // --- Scroll-reveal for sections ---
   // Elements with .reveal fade/slide in when they enter the viewport.
+  // --- Featured card thumbnail fallback ---
+  // maxresdefault.jpg isn't available for every YouTube video. YouTube returns
+  // a 120x90 placeholder instead of a 404, so onerror never fires. We detect
+  // the placeholder by checking naturalWidth after load and fall back through
+  // lower-res options until we get a real thumbnail.
+  document.addEventListener("DOMContentLoaded", function () {
+    var thumbs = document.querySelectorAll(".featured-thumb");
+    var fallbackSets = {
+      "maxresdefault": ["sddefault", "hqdefault", "mqdefault"]
+    };
+
+    thumbs.forEach(function (img) {
+      var src = img.src;
+      var ytMatch = src.match(/img\.youtube\.com\/vi\/([^/]+)\/(\w+)\.jpg/);
+      if (!ytMatch) return;
+      var videoId = ytMatch[1];
+      var quality = ytMatch[2];
+      var fallbacks = (fallbackSets[quality] || []).map(function (q) {
+        return "https://img.youtube.com/vi/" + videoId + "/" + q + ".jpg";
+      });
+      var attempt = 0;
+
+      function tryNext() {
+        if (attempt < fallbacks.length) img.src = fallbacks[attempt++];
+      }
+
+      function onLoaded() {
+        if (img.naturalWidth <= 120) tryNext();
+      }
+
+      img.addEventListener("load", onLoaded);
+      if (img.complete && img.naturalWidth <= 120) tryNext();
+    });
+  });
+
   document.addEventListener("DOMContentLoaded", function () {
     // Tag elements to reveal
     var revealSelectors = [

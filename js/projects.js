@@ -20,6 +20,45 @@ var projects = [];
 // Inline fallback data (mirrors data/projects.json)
 var fallbackData = [
   {
+    "title": "\"Guard Dog\" Music Video",
+    "name": "K33G",
+    "tags": ["mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=DTRle9KNdGs"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"See Right Through You\" Music Video",
+    "name": "K33G",
+    "tags": ["mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=4Gd6xozOIHw"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"asked4\" Music Video",
+    "name": "K33G",
+    "tags": ["mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=tuHOvAJDXsc"
+    },
+    "visible": true
+  },
+  {
     "title": "\"Boulder\" Music Video",
     "name": "K33G",
     "tags": ["3d", "mv", "comm"],
@@ -72,19 +111,6 @@ var fallbackData = [
     "visible": true
   },
   {
-    "title": "\"L8R!!\" Music Video",
-    "name": "Cho",
-    "tags": ["3d", "mv", "comm"],
-    "poster": "",
-    "src": "",
-    "roles": "Director / DP / Editor / Colorist",
-    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
-    "links": {
-      "youtube": "https://www.youtube.com/watch?v=5teKu_b6Hng"
-    },
-    "visible": true
-  },
-  {
     "title": "\"BRAG\" Music Video",
     "name": "K33G",
     "tags": ["project", "3d", "mv"],
@@ -94,6 +120,32 @@ var fallbackData = [
     "description": "Full creative direction and production for the official music video — directing, cinematography, editing, color grading, and title card design.",
     "links": {
       "youtube": "https://www.youtube.com/watch?v=CuasIJncvRY"
+    },
+    "visible": true
+  },
+  {
+    "title": "lwrcs Visuals Reel 2024",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / 3D Animator",
+    "description": "",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=BiHXwpY-_Bw"
+    },
+    "visible": true
+  },
+  {
+    "title": "\"L8R!!\" Music Video",
+    "name": "Cho",
+    "tags": ["3d", "mv", "comm"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / DP / Editor / Colorist",
+    "description": "Full creative direction and production for the official music video — directing, cinematography, editing, and color grading.",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=5teKu_b6Hng"
     },
     "visible": true
   },
@@ -144,6 +196,24 @@ var fallbackData = [
     "description": "Designed and animated a 3D product showcase for the coin collector series, including environment modeling and sound design.",
     "links": {
       "vimeo": "https://vimeo.com/924164176"
+    },
+    "visible": true
+  },
+  {
+    "title": "lifetime [visualizer]",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal", "mv", "music", "mymusic"],
+    "poster": "img/thumbnail/lifetime.jpg",
+    "src": "img/portfolio/lifetime.mov",
+    "roles": "Character Animation, Rigging, Environment Design, Music Production",
+    "description": "",
+    "links": {
+      "spotify": "https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749",
+      "soundcloud": "https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+      "appleMusic": "https://music.apple.com/us/album/lifetime/1684156859?i=1684156863",
+      "youtube": "https://www.youtube.com/watch?v=ig8_XM-PW7A",
+      "tidal": "https://tidal.com/browse/track/290945229",
+      "deezer": "https://deezer.page.link/9MdYfpksgKXMLN9YA"
     },
     "visible": true
   },
@@ -313,24 +383,6 @@ var fallbackData = [
     "visible": true
   },
   {
-    "title": "\"lifetime\" Visual",
-    "name": "lwrcs",
-    "tags": ["3d", "anim", "personal", "mv", "music", "mymusic"],
-    "poster": "img/thumbnail/lifetime.jpg",
-    "src": "img/portfolio/lifetime.mov",
-    "roles": "Character Animation, Rigging, Environment Design, Music Production",
-    "description": "",
-    "links": {
-      "spotify": "https://open.spotify.com/track/6YG9Ks60OTQ7NoB5UskUvu?si=23edbcd10af34749",
-      "soundcloud": "https://soundcloud.com/lwrcs/lifetime?si=b2ba7250e3514758bb1e21892dd752a3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-      "appleMusic": "https://music.apple.com/us/album/lifetime/1684156859?i=1684156863",
-      "youtube": "https://www.youtube.com/watch?v=ig8_XM-PW7A",
-      "tidal": "https://tidal.com/browse/track/290945229",
-      "deezer": "https://deezer.page.link/9MdYfpksgKXMLN9YA"
-    },
-    "visible": false
-  },
-  {
     "title": "\"CatBoyDeathSquad\" Visual",
     "name": "lwrcs",
     "tags": ["3d", "anim", "mv", "personal", "mymusic"],
@@ -347,6 +399,32 @@ var fallbackData = [
       "deezer": "https://deezer.page.link/gi4jBxfzJYUgVWDS6"
     },
     "visible": false
+  },
+  {
+    "title": "lwrcs Visuals Reel 2022",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "",
+    "src": "",
+    "roles": "Director / 3D Animator",
+    "description": "",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=PlbqsxJdNVI"
+    },
+    "visible": true
+  },
+  {
+    "title": "lwrcs Studios Animation",
+    "name": "lwrcs",
+    "tags": ["3d", "anim", "personal"],
+    "poster": "",
+    "src": "",
+    "roles": "3D Animator",
+    "description": "",
+    "links": {
+      "youtube": "https://www.youtube.com/watch?v=xw7WkUda42A"
+    },
+    "visible": true
   }
 ];
 
