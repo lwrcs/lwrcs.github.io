@@ -179,7 +179,7 @@ Edit `data/projects.json` and add a new object to the array. No JavaScript chang
     "name": "Client or Artist Name",
     "tags": ["3d", "anim", "promo"],
     "poster": "img/thumbnail/your-thumbnail.jpg",
-    "src": "img/portfolio/your-video.mp4",
+    "src": "img/video/your-video.mp4",
     "roles": "What you did on this project",
     "links": {
         "youtube": "https://...",
