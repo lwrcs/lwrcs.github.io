@@ -96,18 +96,20 @@ deskQuery.addEventListener('change', applyMode);
 addEventListener('resize', onResize);
 ui.load('data/projects.json');
 ui.onChange = (e) => {
-  if (e.type === 'open') inner?.gesture('agree');
+  if (e.type === 'open') inner?.gesture('nod');
   if (e.type === 'color') setBlue(!blue);
 };
 
 try {
   const model = document.querySelector('meta[name="lwrcs-model"]')?.content || 'assets/models/lifetime.glb';
-  const movesP = fetch('assets/models/lifetime-moves.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const gltf = await loadModel(model, (f) => {
     loadLine.textContent = 'LOADING LIFETIME.GLB ' + String(Math.round(Math.min(1, f) * 100)).padStart(3) + '%';
   });
   povChar = cloneSkinned(gltf.scene);
-  const moves = await movesP;
+  // clips come baked into the model from his Blender actions (lifetime_idle, ...); older models
+  // without them use the retargeted Mixamo clips
+  let moves = Object.fromEntries(gltf.animations.filter((c) => c.name.startsWith('lifetime_')).map((c) => [c.name.slice(9), c]));
+  if (!moves.idle) moves = await fetch('assets/models/lifetime-moves.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
   try { inner = new InnerView(innerCanvas, gltf.scene, { moves }); } catch (err) { glOK = false; console.warn(err); }
 } catch (err) {
   console.warn(err);

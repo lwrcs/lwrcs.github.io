@@ -4,7 +4,7 @@
 //   curl -O https://raw.githubusercontent.com/mrdoob/three.js/r170/examples/models/gltf/Xbot.glb
 //   node tools/retarget_mixamo.mjs Xbot.glb assets/models/lifetime.glb assets/models/lifetime-moves.json
 //
-// Xbot carries Mixamo's idle, walk, agree and headShake. Each mapped bone gets the source's
+// Xbot carries Mixamo's idle, walk, agree and headShake (saved here as idle, walk, nod, shake). Each mapped bone gets the source's
 // world-space rotation change from its rest pose, applied on top of a target rest pose that is
 // first bent to point where the source's bones point (lifetime's arms rest lower than a T-pose).
 // Hips keep their vertical bob; the page moves him across the floor itself.
@@ -59,6 +59,7 @@ const reset = () => { for (const [b, r] of rest) { b.quaternion.copy(r.q); b.pos
 const parentQ = hips.parent.getWorldQuaternion(new THREE.Quaternion()), parentS = hips.parent.getWorldScale(new THREE.Vector3());
 
 const FPS = { idle: 15, walk: 30, agree: 20, headShake: 20 };
+const NAME = { idle: 'idle', walk: 'walk', agree: 'nod', headShake: 'shake' };
 const mixer = new THREE.AnimationMixer(src.scene), out = {}, q = new THREE.Quaternion();
 for (const name of Object.keys(FPS)) {
   const clip = src.animations.find((a) => a.name === name);
@@ -81,7 +82,7 @@ for (const name of Object.keys(FPS)) {
   }
   const tracks = [...rot].map(([bone, values]) => ({ name: bone + '.quaternion', type: 'quaternion', times, values }));
   tracks.push({ name: 'spine.position', type: 'vector', times, values: bob });
-  out[name] = { duration: clip.duration, tracks };
+  out[NAME[name]] = { duration: clip.duration, tracks };
 }
 fs.writeFileSync(outPath, JSON.stringify(out));
 console.log('wrote', outPath, fs.statSync(outPath).size, 'bytes');

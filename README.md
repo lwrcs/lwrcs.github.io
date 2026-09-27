@@ -22,14 +22,21 @@ app/
 ├── springs.js   ← critically damped springs: things can lag, never jump
 ├── halftone.js  ← web port of the "Pixel Shaded.005" Blender material, plus blue mode
 └── dev/         ← tuning pages (rest pose, inner view, clips)
-assets/models/lifetime.glb         ← character, exported by tools/export_character.py
-assets/models/lifetime-moves.json  ← Mixamo idle/walk/nod/head-shake, retargeted by tools/retarget_mixamo.mjs
+assets/models/lifetime.glb         ← character and his lifetime_* clips, exported by tools/export_character.py
+assets/models/lifetime-moves.json  ← Mixamo idle/walk/nod/shake retargeted by tools/retarget_mixamo.mjs;
+                                     only used when the model carries no clips
 vendor/three/               ← three.js r170 (MIT)
 ```
 
 Re-export the character after editing the .blend (Blender 4.5+ Python module):
 `python tools/export_character.py`, then `npx gltf-transform weld` and `quantize` on the result.
-If the rig changes, re-bake the clips with `tools/retarget_mixamo.mjs` (instructions at its top).
+The export evaluates every action named `lifetime_*` on the full rig (IK included) and bakes it
+into the GLB; the site plays `lifetime_idle`, `lifetime_walk` (in place: the site moves him and
+matches his speed to the stride), `lifetime_nod` and `lifetime_shake`.
+
+To edit the moves in Blender, `python tools/moves_to_blender.py <character.blend> assets/models/lifetime.glb
+assets/models/lifetime-moves.json lifetime_moves_for_blender.py` writes a script that, run in Blender's
+Scripting tab, keys those four actions onto the rig's own controls (IK targets, poles, spine).
 
 Blue mode (on by default) draws everything in black and #0000FF only. Toggle it with the first
 knob on the monitor's chin, the `color` terminal command, or `?blue=0`.

@@ -1,4 +1,6 @@
 # Bakes the lifetime character into a small skinned GLB for the website.
+# Every action named lifetime_* (see tools/moves_to_blender.py) is evaluated on the full rig,
+# IK and constraints included, and baked onto the deform bones as a clip in the GLB.
 # usage: python export_character.py <character.blend> <out.glb>   (needs the bpy module, 4.5+)
 #    or: blender -b --python export_character.py -- <character.blend> <out.glb>
 import bpy, bmesh, mathutils, collections, sys, os
@@ -6,6 +8,28 @@ args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
 SRC, OUT = (args + ['char.blend', 'lifetime.glb'][len(args):])[:2]
 bpy.ops.wm.open_mainfile(filepath=os.path.abspath(SRC))
 arm = bpy.data.objects['Evilcase']
+scene = bpy.context.scene
+
+# record what each lifetime_* action does to every bone, frame by frame, while the rig is whole
+arm.data.pose_position = 'POSE'
+ad = arm.animation_data or arm.animation_data_create()
+ad.use_nla = False
+baked = {}
+for act in sorted((a for a in bpy.data.actions if a.name.startswith('lifetime_')), key=lambda a: a.name):
+    ad.action = act
+    if hasattr(ad, 'action_slot') and ad.action_slot is None and len(act.slots):
+        ad.action_slot = act.slots[0]
+    f0, f1 = (int(round(f)) for f in act.frame_range)
+    frames = []
+    for f in range(f0, f1 + 1):
+        scene.frame_set(f)
+        frames.append({pb.name: pb.matrix.copy() for pb in arm.pose.bones})
+    baked[act.name] = frames
+    print("RECORDED", act.name, len(frames), "frames")
+ad.action = None
+for pb in arm.pose.bones:
+    pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+
 BODY = ['Arms.001','Body.001','Neck.001','Pants.001','Shoes.001','Sleeves.001']
 HEAD = ['Head.001','Hair.001','Glasses.001','Eyebrows']
 keep = set(BODY+HEAD+['Evilcase'])
@@ -99,11 +123,50 @@ for gname, members in groups.items():
     me=j.data
     print("GROUP", gname, len(me.vertices),"verts", sum(len(p.vertices)-2 for p in me.polygons),"tris", "mats",[m.name for m in me.materials], "vgroups",len(j.vertex_groups))
 
+# rebuild the recorded actions on what is left of the skeleton: parent-relative rotations
+# (and the root's location) that reproduce each bone's recorded pose
+for a in list(bpy.data.actions): bpy.data.actions.remove(a)
+arm.animation_data_clear()
+for pb in arm.pose.bones: pb.rotation_mode = 'QUATERNION'
+if baked:
+    ad = arm.animation_data_create()
+    for name, frames in baked.items():
+        act = bpy.data.actions.new(name)
+        ad.action = act
+        for b in arm.data.bones:
+            p = b.parent
+            rel = b.matrix_local.inverted() @ p.matrix_local if p else b.matrix_local.inverted()
+            locs, quats = [], []
+            for M in frames:
+                loc, q, _ = (rel @ (M[p.name].inverted() if p else mathutils.Matrix.Identity(4)) @ M[b.name]).decompose()
+                if quats and q.dot(quats[-1]) < 0: q.negate()
+                locs.append(loc); quats.append(q)
+            # only channels that ever leave the rest pose; the rest stay out of the GLB
+            chans = []
+            if max(1 - abs(q.w) for q in quats) > 1e-9:
+                chans += [('rotation_quaternion', i, [q[i] for q in quats]) for i in range(4)]
+            if max(l.length for l in locs) > 1e-4:
+                chans += [('location', i, [l[i] for l in locs]) for i in range(3)]
+            for path, i, vals in chans:
+                if max(vals) - min(vals) < 1e-6: vals = vals[:1] + [None] * (len(vals) - 2) + vals[-1:]
+                keys = [(f, v) for f, v in enumerate(vals) if v is not None]
+                dp = f'pose.bones["{b.name}"].{path}'
+                if hasattr(act, 'fcurve_ensure_for_datablock'): fc = act.fcurve_ensure_for_datablock(arm, dp, index=i, group_name=b.name)
+                else: fc = act.fcurves.new(dp, index=i, action_group=b.name)
+                fc.keyframe_points.add(len(keys))
+                fc.keyframe_points.foreach_set('co', [c for k in keys for c in k])
+                for k in fc.keyframe_points: k.interpolation = 'LINEAR'
+                fc.update()
+        act.use_fake_user = True
+    ad.action = None
+    arm.data.pose_position = 'POSE'
+
 for o in bpy.context.selected_objects: o.select_set(False)
 arm.select_set(True)
 for o in arm.children: o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=os.path.abspath(OUT), export_format='GLB', use_selection=False, use_active_scene=True,
-    export_apply=False, export_skins=True, export_animations=False, export_morph=False, export_yup=True,
+    export_apply=False, export_skins=True, export_animations=bool(baked), export_animation_mode='ACTIONS',
+    export_force_sampling=False, export_optimize_animation_size=True, export_rest_position_armature=True, export_morph=False, export_yup=True,
     export_materials='EXPORT', export_texcoords=False, export_normals=True, export_tangents=False,
     export_all_influences=False, export_def_bones=False, export_extras=False, export_cameras=False, export_lights=False)
 print("GLB bytes", os.path.getsize(OUT))

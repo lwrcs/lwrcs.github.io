@@ -13,9 +13,12 @@ const r = new THREE.WebGLRenderer({ canvas: c, antialias: true, preserveDrawingB
 r.setClearColor(0x202030);
 const scene = new THREE.Scene();
 scene.add(new THREE.HemisphereLight(0xffffff, 0x333333, 2));
-const g = await new GLTFLoader().loadAsync('../../assets/models/lifetime.glb');
-const moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
-const clip = THREE.AnimationClip.parse({ name: clipName, duration: moves[clipName].duration, tracks: moves[clipName].tracks });
+const g = await new GLTFLoader().loadAsync(Q.get('model') || '../../assets/models/lifetime.glb');
+let clip = g.animations.find(c => c.name === 'lifetime_' + clipName);
+if (!clip) {
+  const moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
+  clip = THREE.AnimationClip.parse({ name: clipName, duration: moves[clipName].duration, tracks: moves[clipName].tracks });
+}
 const N = 6, chars = [];
 for (let i = 0; i < N; i++) {
   const ch = i === 0 ? g.scene : (await import('three/addons/utils/SkeletonUtils.js')).clone(g.scene);

@@ -1,7 +1,8 @@
 // The character living inside VIEW.EXE. The window is a pane of glass with a small room
 // behind it. He paces the back of the room, drifting toward wherever the cursor is; when the
 // cursor comes onto the window he walks up to the glass and plants a hand on it under the cursor.
-// Walk and idle are Mixamo clips retargeted onto his rig (assets/models/lifetime-moves.json);
+// Walk, idle and the nod/shake gestures are his Blender actions baked into the model (or, for a
+// model without them, Mixamo clips retargeted onto his rig in assets/models/lifetime-moves.json);
 // head tracking, leaning and the hand on the glass are layered on top every frame.
 import * as THREE from 'three';
 import { applyCharacterMaterials, hullMaterial, pixelUniform, blueU, INK, BAYER_GLSL } from './halftone.js';
@@ -12,7 +13,6 @@ import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
 // glass, so a cursor on the window is a point on the glass. Slopes are dy per unit of distance.
 const EYE_Y = 2.0, EYE_D = 1.25, TOP = 0.2, BOTTOM = -0.76;
 const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
-const CLIP_SPEED = 1.59;       // stride speed of the walk clip at timeScale 1, measured when baking
 const WALK = 1.05;             // his walking speed
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
@@ -24,6 +24,7 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const X = V(1, 0, 0), Y = V(0, 1, 0), Z = V(0, 0, 1);
 
 export class InnerView {
+  // moves: { idle, walk, nod, shake }, each an AnimationClip or a clip in three's JSON form
   constructor(canvas, characterScene, { moves = null, pixelCss = 2 } = {}) {
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: true });
@@ -60,7 +61,10 @@ export class InnerView {
     this.mixer = new THREE.AnimationMixer(this.char);
     this.act = {};
     const clips = {};
-    for (const [name, m] of Object.entries(moves || {})) clips[name] = THREE.AnimationClip.parse({ name, duration: m.duration, tracks: m.tracks, uuid: THREE.MathUtils.generateUUID() });
+    for (const [name, m] of Object.entries(moves || {})) {
+      clips[name] = m instanceof THREE.AnimationClip ? m : THREE.AnimationClip.parse({ name, duration: m.duration, tracks: m.tracks, uuid: THREE.MathUtils.generateUUID() });
+    }
+    this.clipSpeed = strideSpeed(this.char, clips.walk) || 1.59;
     for (const name of ['idle', 'walk']) {
       if (!clips[name]) continue;
       const a = this.mixer.clipAction(clips[name]);
@@ -68,7 +72,7 @@ export class InnerView {
       this.act[name] = a;
     }
     // gestures play additively on the upper body only, so they mix with walking or pressing
-    for (const name of ['agree', 'headShake']) {
+    for (const name of ['nod', 'shake']) {
       if (!clips[name]) continue;
       const upper = clips[name].tracks.filter((t) => !/^(spine|thigh[LR]|shin[LR]|foot[LR]|toe[LR])\./.test(t.name));
       const clip = THREE.AnimationUtils.makeClipAdditive(new THREE.AnimationClip(name, clips[name].duration, upper));
@@ -143,7 +147,7 @@ export class InnerView {
     this.lastMove = this.clock;
     const h = this.hand[this.side];
     if (this.mode === 'press' && h.w.x > 0.6) h.knock.v -= 2.4;
-    else this.gesture('headShake');
+    else this.gesture('shake');
   }
   gesture(name) {
     const a = this.act[name];
@@ -225,7 +229,7 @@ export class InnerView {
       const step = smooth(0.3, 1.8, Math.abs(w)) * 0.55;      // shuffling feet while turning on the spot
       const ww = Math.max(smooth(0, WALK * 0.45, v), step);
       walk.setEffectiveWeight(ww); idle.setEffectiveWeight(1 - ww);
-      walk.timeScale = Math.max(v / CLIP_SPEED, step * 0.5);
+      walk.timeScale = Math.max(v / this.clipSpeed, step * 0.5);
     }
     if (this.gest) {
       const g = this.gest, dur = g.a.getClip().duration;
@@ -354,6 +358,25 @@ export class InnerView {
 
 // ------------------------------------------------------------------ the room behind the glass
 // A black box with a dithered grid on the floor and back wall, so depth reads in one colour.
+// How fast the planted foot slides back in the in-place walk: the speed he has to travel at for
+// his feet not to skate. Measured on the rig, so a walk edited in Blender keeps its footing.
+function strideSpeed(root, clip) {
+  const feet = ['footL', 'footR'].map((n) => root.getObjectByName(n));
+  if (!clip || feet.some((f) => !f)) return null;
+  const mixer = new THREE.AnimationMixer(root), a = mixer.clipAction(clip).play();
+  const n = 60, inv = new THREE.Matrix4(), prev = [V(0, 0, 0), V(0, 0, 0)], cur = [V(0, 0, 0), V(0, 0, 0)];
+  let dist = 0;
+  for (let i = 0; i <= n; i++) {
+    a.time = (i / n) * clip.duration; mixer.update(0); root.updateMatrixWorld(true);
+    inv.copy(root.matrixWorld).invert();
+    feet.forEach((f, k) => cur[k].setFromMatrixPosition(f.matrixWorld).applyMatrix4(inv));
+    if (i) { const k = cur[0].y < cur[1].y ? 0 : 1; dist += prev[k].z - cur[k].z; }
+    prev.forEach((p, k) => p.copy(cur[k]));
+  }
+  mixer.stopAllAction(); mixer.uncacheRoot(root);
+  return Math.abs(dist) / clip.duration;
+}
+
 function buildInterior(pixel) {
   const g = new THREE.Group();
   const shadow = { value: new THREE.Vector2(0, -1) };

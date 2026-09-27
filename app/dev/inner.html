@@ -6,8 +6,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InnerView } from '../inner.js';
-const gltf = await new GLTFLoader().loadAsync('../../assets/models/lifetime.glb');
-const moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
+const Q = new URLSearchParams(location.search);
+const gltf = await new GLTFLoader().loadAsync(Q.get('model') || '../../assets/models/lifetime.glb');
+let moves = Object.fromEntries(gltf.animations.filter(c => c.name.startsWith('lifetime_')).map(c => [c.name.slice(9), c]));
+if (!moves.idle) moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
 const v = new InnerView(document.getElementById('c'), gltf.scene, { moves });
 if (location.search.includes('blue')) (await import('../halftone.js')).blueU.value = 1;
 window.v = v; window.__nm = new THREE.MeshNormalMaterial();
