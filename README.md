@@ -9,15 +9,8 @@ Portfolio website for lwrcs — 3D animation, music video production, and visual
 ```
 lwrcs.github.io/
 ├── index.html              ← Homepage (landing page)
-├── styles.css              ← Main CSS entry point (imports partials)
+├── styles.css              ← All site styles (single stylesheet)
 ├── CNAME                   ← Custom domain config
-│
-├── css/                    ← CSS partials (imported by styles.css)
-│   ├── base.css            ← Variables, fonts, reset, dark mode
-│   ├── animations.css      ← All keyframes, loader, back-to-top
-│   ├── nav.css             ← Desktop nav, mobile hamburger, responsive
-│   ├── gallery.css         ← Gallery grid, captions, icons, filters
-│   └── homepage.css        ← Landing page split layout
 │
 ├── js/                     ← JavaScript
 │   ├── menu.js             ← Shared nav injection (ES module)
@@ -36,7 +29,7 @@ lwrcs.github.io/
 ├── data/
 │   └── projects.json       ← All project data (edit this to add projects)
 │
-├── fonts/                  ← Custom font files
+├── fonts/                  ← Montserrat + Londrina Solid (the only fonts used)
 ├── img/                    ← Images, thumbnails, icons, portfolio videos
 │
 ├── visuals/                ← Visuals page
@@ -163,7 +156,7 @@ This automatically updates the nav on **every page** — both desktop and mobile
 - **`<base href="../">`** is required for subpages so that `styles.css`, `js/`, `img/`, and `data/` paths resolve correctly back to the root.
 - **Do NOT add `<base href>`** to `index.html` at the root — it's only for pages inside subfolders.
 - The nav `<ul>` elements should be **empty** in the HTML. `menu.js` fills them in automatically.
-- All shared styles come through `styles.css` which imports the CSS partials. No need to add extra `<link>` tags unless you have page-specific styles.
+- All shared styles come through `styles.css`. No need to add extra `<link>` tags unless you have page-specific styles.
 
 ---
 
@@ -231,35 +224,26 @@ Each key in `links` maps to an icon in `img/icon/`. Available platforms:
 
 ## Adding Page-Specific CSS
 
-If a new page needs its own styles, create a new file in `css/` (e.g. `css/about.css`) and add it to `styles.css`:
+If a new page needs its own styles, add a new section to `styles.css`.
 
-```css
-@import url("css/base.css");
-@import url("css/animations.css");
-@import url("css/nav.css");
-@import url("css/gallery.css");
-@import url("css/homepage.css");
-@import url("css/about.css");       /* ← new */
-```
-
-Or, if the styles are only needed on one page, add a `<style>` block in that page's `<head>` after the `<link>` to `styles.css`.
+If the styles are only needed on one page, add a `<style>` block in that page's `<head>` after the `<link>` to `styles.css`.
 
 ---
 
 ## Dark Mode
 
-Dark mode is automatic via `@media (prefers-color-scheme: dark)` in `css/base.css`. It follows the user's OS/browser setting. No toggle button is needed — but one could be added later if desired.
+Dark mode is automatic via `@media (prefers-color-scheme: dark)` in `styles.css`. It follows the user's OS/browser setting. No toggle button is needed — but one could be added later if desired.
 
 ---
 
 ## CSS Architecture
 
-`styles.css` is a thin entry point that imports 5 partials:
+`styles.css` is a single stylesheet organized into sections:
 
-| File | What it contains |
+| Section | What it contains |
 |---|---|
-| `css/base.css` | CSS variables, font faces, reset, dark mode overrides |
-| `css/animations.css` | All `@keyframes`, loader blob, back-to-top button |
-| `css/nav.css` | Desktop nav bar, mobile hamburger menu, gradient |
-| `css/gallery.css` | Video gallery grid, captions, streaming icons, filter buttons |
-| `css/homepage.css` | Landing page split layout, footer |
+| Base | CSS variables, font faces, reset, dark mode overrides |
+| Animations | All `@keyframes`, loader blob, back-to-top button |
+| Nav | Desktop nav bar, mobile hamburger menu, gradient |
+| Gallery | Video gallery grid, captions, streaming icons, filter buttons |
+| Homepage | Landing page split layout, footer |
