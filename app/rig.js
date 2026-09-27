@@ -131,27 +131,6 @@ export class Rig {
     return out.premultiply(this.rootQuat(_q2));
   }
 
-  // Bigger hands read better at small sizes; the palm offset scales with them.
-  setHandScale(k) {
-    for (const side of ['L', 'R']) {
-      const H = this.hands[side];
-      H.palmLocal0 ??= H.palmLocal.clone();
-      H.palmLocal.copy(H.palmLocal0).multiplyScalar(k);
-      this.b('hand.' + side).scale.setScalar(k);
-    }
-    this.handScale = k;
-  }
-
-  // Longer fingers: push the middle and end phalanges out along their parents (skin stretches).
-  setFingerLength(k) {
-    for (const side of ['L', 'R']) for (const fn of FINGERS) for (const i of [2, 3]) {
-      const r = this.rest.get(this.b(`${fn}.0${i}.${side}`));
-      r.p0 ??= r.p.clone();
-      r.p.copy(r.p0).multiplyScalar(fn === 'thumb' ? 1 + (k - 1) * 0.5 : k);
-    }
-    this.reset();
-  }
-
   // Wrist position that puts the palm centre at palmWorld for the given hand rotation.
   wristFor(side, palmWorld, handWorldQ, out = new THREE.Vector3()) {
     return out.copy(this.hands[side].palmLocal).applyQuaternion(handWorldQ).negate().add(palmWorld);
@@ -191,8 +170,7 @@ export class Rig {
   fingertipWorld(side, finger = 'f_index', out = new THREE.Vector3()) {
     const bone = this.b(`${finger}.03.${side}`);
     bone.getWorldPosition(out);
-    const tipLen = 0.03 * (this.handScale || 1);
-    return out.add(_a.set(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(_q)).multiplyScalar(tipLen));
+    return out.add(_a.set(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(_q)).multiplyScalar(0.03));
   }
 }
 
@@ -206,7 +184,7 @@ function basisQuat(f, n) {
 // Finger poses (curl radians per joint, spread factor). Blended by the caller.
 export const POSES = {
   relaxed: { thumb: [0.15, 0.25, 0.2], f_index: [0.3, 0.4, 0.25], f_middle: [0.35, 0.45, 0.3], f_ring: [0.4, 0.5, 0.3], f_pinky: [0.45, 0.55, 0.35], spread: 0.05 },
-  flat:    { thumb: [-0.35, -0.15, 0.0], f_index: [-0.3, -0.25, -0.15], f_middle: [-0.3, -0.25, -0.15], f_ring: [-0.25, -0.2, -0.15], f_pinky: [-0.2, -0.2, -0.15], spread: 0.6 },
+  flat:    { thumb: [0.1, 0.05, 0.0], f_index: [0.03, 0.03, 0.02], f_middle: [0.03, 0.03, 0.02], f_ring: [0.04, 0.04, 0.03], f_pinky: [0.05, 0.05, 0.03], spread: 0.25 },
   grip:    { thumb: [0.35, 0.25, 0.15], f_index: [0.25, 0.35, 0.25], f_middle: [0.3, 0.4, 0.3], f_ring: [0.55, 0.6, 0.4], f_pinky: [0.65, 0.7, 0.45], spread: 0.02 },
   point:   { thumb: [0.55, 0.5, 0.35], f_index: [0.05, 0.08, 0.05], f_middle: [1.25, 1.35, 0.9], f_ring: [1.3, 1.4, 0.9], f_pinky: [1.3, 1.4, 0.9], spread: 0.0 },
   open:    { thumb: [-0.05, 0.05, 0.05], f_index: [0.05, 0.1, 0.1], f_middle: [0.08, 0.12, 0.1], f_ring: [0.1, 0.15, 0.1], f_pinky: [0.12, 0.15, 0.12], spread: 0.3 },

@@ -25,6 +25,7 @@ a { color: inherit; }
 /* ---------------------------------------------------------------- desk mode */
 .mode-desk, .mode-desk body { overflow: hidden; height: 100%; }
 .mode-desk #stage { position: fixed; inset: 0; overflow: hidden; background: #000; cursor: var(--cross); }
+.mode-desk #glass { position: absolute; inset: 0; }
 .mode-desk #screen {
   position: absolute; left: 0; top: 0; width: 960px; height: 720px;
   transform-origin: 0 0; border-radius: 22px; overflow: hidden;
@@ -52,15 +53,9 @@ a { color: inherit; }
   background:
     repeating-linear-gradient(to bottom, rgba(0, 0, 10, 0.32) 0 1px, transparent 1px 3px),
     radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(0, 0, 8, 0.6) 100%);
-  animation: flicker 5s steps(1) infinite;
+  animation: flicker 9s steps(1) infinite;
 }
-.crt .fx::after {
-  content: ''; position: absolute; left: 0; right: 0; top: -30%; height: 30%;
-  background: linear-gradient(to bottom, transparent, rgba(70, 90, 255, 0.05) 50%, transparent);
-  animation: roll 7s linear infinite;
-}
-@keyframes flicker { 0%, 100% { opacity: 1; } 41% { opacity: .9; } 42% { opacity: 1; } 77% { opacity: .95; } 78% { opacity: 1; } }
-@keyframes roll { to { transform: translateY(433%); } }
+@keyframes flicker { 0%, 100% { opacity: 1; } 61% { opacity: .985; } 62% { opacity: 1; } }
 
 #desk {
   position: absolute; inset: 0; display: grid; grid-template-columns: 214px 1fr 214px;
@@ -208,7 +203,27 @@ img.dither.big { width: auto; height: auto; max-height: 100%; object-fit: contai
 .mode-screen .viewer-body pre { font-size: 21px; }
 
 .plain { padding: 40px; font-size: 24px; }
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ---------------------------------------------------------------- blue mode
+   Only black and #0000FF. Colours collapse to one ink, glows go, tints become dither patterns,
+   photos and video are ordered-dithered, and the whole glass is snapped to the two values so
+   anti-aliasing and the perspective warp can't leave anything in between. */
+.blue {
+  --ink: #0000ff; --ink-hi: #0000ff; --ink-dim: #0000ff; --bg: #000; --glow: none;
+  --hatch: conic-gradient(#0000ff 25%, #000 0 50%, #0000ff 0 75%, #000 0) 0 0 / 4px 4px;
+}
+.blue #glass { filter: url(#blue-snap); }
+.blue #tag { filter: url(#blue-snap); }
+.blue .crt .fx { display: none; }
+.blue .win { box-shadow: none; background: #000; }
+.blue .b, .blue .list li.on { box-shadow: none; }
+.blue .ico, .blue #pcursor { filter: none; }
+.blue .list li:hover, .blue .list li:focus-visible { background: var(--hatch); }
+.blue .list li.on:hover { background: var(--ink); }
+.blue #viewer img, .blue #viewer video, .blue #viewer iframe, .blue #preview img:not(.tpose) { filter: url(#blue-dither); mix-blend-mode: normal; }
+.blue #preview:has(img.dither)::after, .blue .k-image::after { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .crt .fx, .crt .fx::after { animation: none; }
+  .crt .fx { animation: none; }
 }

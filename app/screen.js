@@ -212,7 +212,7 @@ export class ScreenUI {
     if (c === 'cd' && this.tree[arg.replace(/^\//, '')]) { this.cd(arg.replace(/^\//, '')); return this.print('ok'); }
     if (c === 'cd' && (arg === '/' || arg === '..' || !arg)) { this.cd('home'); return this.print('ok'); }
     if (c === 'ls' || c === 'dir') return this.print(this.tree[this.cwd].map((f) => f.name).join('  '));
-    if (c === 'help' || c === '?') return this.print('home projects music about contact  ls  open <n>  cls');
+    if (c === 'help' || c === '?') return this.print('home projects music about contact  ls  open <n>  color  cls');
     if (c === 'cls' || c === 'clear') { this.closeViewer(); return this.print(''); }
     if (c === 'open' || c === 'run') {
       const list = this.tree[this.cwd];
@@ -221,6 +221,7 @@ export class ScreenUI {
       return this.print('file not found');
     }
     if (c === 'whoami') return this.print('guest');
+    if (c === 'color' || c === 'colour' || c === 'blue') { this.onChange({ type: 'color' }); return this.print(document.documentElement.classList.contains('blue') ? 'blue only' : 'colour'); }
     if (c === 'lifetime') { this.cd('music'); this.open(this.tree.music[0]); return this.print('♪'); }
     this.print(`'${cmd}' is not recognized. try help`);
   }

@@ -7,7 +7,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InnerView } from '../inner.js';
 const gltf = await new GLTFLoader().loadAsync('../../assets/models/lifetime.glb');
-const v = new InnerView(document.getElementById('c'), gltf.scene);
+const moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
+const v = new InnerView(document.getElementById('c'), gltf.scene, { moves });
+if (location.search.includes('blue')) (await import('../halftone.js')).blueU.value = 1;
 window.v = v; window.__nm = new THREE.MeshNormalMaterial();
 let t = 0;
 // deterministic stepping for screenshots: window.sim(seconds, x, y)

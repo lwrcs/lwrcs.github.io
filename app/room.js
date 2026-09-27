@@ -12,7 +12,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export function buildRoom(pixel) {
   const g = new THREE.Group();
-  const mat = (ink, opts = {}) => { const m = halftoneMaterial({ pixel, ink, gain: 2.4, ...opts }); m.userData.args = [ink, opts]; return m; };
+  const mat = (ink, opts = {}) => { const m = halftoneMaterial({ pixel, ink, gain: 2.4, tone: true, ...opts }); m.userData.args = [ink, opts]; return m; };
   const M = {
     desk: mat(0x3a3f8f, { base: 0xbbbbbb }),
     beige: mat(BEIGE),
@@ -69,7 +69,8 @@ export function buildRoom(pixel) {
   powerBtn.position.copy(powerRest); crt.add(powerBtn);
   const powerLed = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.006, 0.003), new THREE.MeshBasicMaterial({ color: 0x3cff6a }));
   powerLed.position.set(bezel.w / 2 - 0.07, monBottom + 0.032, front + 0.002); crt.add(powerLed);
-  for (let i = 0; i < 4; i++) { const k = box(0.012, 0.008, 0.006, M.beigeDark, 0.002); k.position.set(-bezel.w / 2 + 0.05 + i * 0.022, monBottom + 0.03, front + 0.001); crt.add(k); }
+  const knobs = [];
+  for (let i = 0; i < 4; i++) { const k = box(0.012, 0.008, 0.006, M.beigeDark, 0.002); k.position.set(-bezel.w / 2 + 0.05 + i * 0.022, monBottom + 0.03, front + 0.001); crt.add(k); knobs.push(k); }
   // badge
   const badge = box(0.05, 0.008, 0.002, M.beigeDark, 0); badge.position.set(-bezel.w / 2 + 0.06, bezelCY + bezel.h / 2 - 0.022, front + 0.001); crt.add(badge);
 
@@ -149,8 +150,9 @@ export function buildRoom(pixel) {
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.1, 16, 1, true), M.black); cup.position.set(-0.45, DESK_Y + 0.05, -0.34); g.add(cup);
   for (let i = 0; i < 4; i++) { const p = box(0.008, 0.16, 0.008, i % 2 ? M.floppy : M.label, 0.002); p.position.set(-0.45 + (i - 1.5) * 0.012, DESK_Y + 0.1, -0.34 + (i % 2) * 0.01); p.rotation.z = (i - 1.5) * 0.12; g.add(p); }
 
-  // Monitor power button (button)
+  // Monitor power button, and the first chin knob switches blue mode (buttons)
   items.push({ id: 'power', group: powerBtn, kind: 'button', hand: 'R', label: 'power', mesh: powerBtn, restPos: powerRest.clone(), normal: V(0, 0, 1), anchor: () => powerBtn.getWorldPosition(new THREE.Vector3()), small: true });
+  items.push({ id: 'color', group: knobs[0], kind: 'button', hand: 'L', label: 'colour', mesh: knobs[0], restPos: knobs[0].position.clone(), normal: V(0, 0, 1), anchor: () => knobs[0].getWorldPosition(new THREE.Vector3()), small: true });
 
   // Each item gets its own copies of its materials, so hovering can light just that item.
   for (const it of items) {

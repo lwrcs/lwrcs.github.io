@@ -29,8 +29,6 @@ export class POV {
     });
     this.root.rotation.set(0, Math.PI, 0); this.root.updateMatrixWorld(true);
     this.rig = new Rig(charScene);
-    this.rig.setHandScale(1.3);
-    this.rig.setFingerLength(1.3);
     const shL = this.rig.b('upper_arm.L').getWorldPosition(new THREE.Vector3());
     const shR = this.rig.b('upper_arm.R').getWorldPosition(new THREE.Vector3());
     this.shMid = shL.clone().add(shR).multiplyScalar(0.5);              // relative to root, facing -Z

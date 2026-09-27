@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>moves test</title>
+<style>body{margin:0;background:#111}canvas{display:block}</style>
+<script type="importmap">{ "imports": { "three": "../../vendor/three/three.module.min.js", "three/addons/": "../../vendor/three/addons/" } }</script>
+<canvas id="c" width="900" height="360"></canvas>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search);
+const clipName = Q.get('clip') || 'walk';
+const r = new THREE.WebGLRenderer({ canvas: c, antialias: true, preserveDrawingBuffer: true });
+r.setClearColor(0x202030);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x333333, 2));
+const g = await new GLTFLoader().loadAsync('../../assets/models/lifetime.glb');
+const moves = await (await fetch('../../assets/models/lifetime-moves.json')).json();
+const clip = THREE.AnimationClip.parse({ name: clipName, duration: moves[clipName].duration, tracks: moves[clipName].tracks });
+const N = 6, chars = [];
+for (let i = 0; i < N; i++) {
+  const ch = i === 0 ? g.scene : (await import('three/addons/utils/SkeletonUtils.js')).clone(g.scene);
+  ch.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshLambertMaterial({ color: 0x8899ff }); o.frustumCulled = false; } });
+  ch.position.x = (i - (N - 1) / 2) * 1.0;
+  ch.rotation.y = Q.get('side') ? Math.PI / 2 : 0;
+  scene.add(ch);
+  const m = new THREE.AnimationMixer(ch); m.clipAction(clip).play(); m.setTime((i / N) * clip.duration);
+  chars.push(m);
+}
+const cam = new THREE.OrthographicCamera(-3.2, 3.2, 2.4, -0.2, 0.1, 20); cam.position.set(0, 0, 8); cam.lookAt(0, 0, 0);
+const grid = new THREE.GridHelper(8, 16, 0x666666, 0x333333); scene.add(grid);
+r.render(scene, cam);
+window.done = true;
+</script>

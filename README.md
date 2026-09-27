@@ -17,17 +17,22 @@ app/
 ├── screen.js    ← the desktop UI inside the monitor (folders, files, viewer, terminal)
 ├── room.js      ← desk, CRT, keyboard, mouse and the items you can reach for
 ├── pov.js       ← first-person arms: mouse, keyboard, reach, press, grab
-├── inner.js     ← the character living inside VIEW.EXE
+├── inner.js     ← the character living inside VIEW.EXE (a room behind the glass)
 ├── rig.js       ← procedural rig control (IK, hand frames, finger poses)
 ├── springs.js   ← critically damped springs: things can lag, never jump
-├── halftone.js  ← web port of the "Pixel Shaded.005" Blender material
-└── dev/         ← tuning pages (rest pose, inner view)
-assets/models/lifetime.glb  ← character, exported by tools/export_character.py
+├── halftone.js  ← web port of the "Pixel Shaded.005" Blender material, plus blue mode
+└── dev/         ← tuning pages (rest pose, inner view, clips)
+assets/models/lifetime.glb         ← character, exported by tools/export_character.py
+assets/models/lifetime-moves.json  ← Mixamo idle/walk/nod/head-shake, retargeted by tools/retarget_mixamo.mjs
 vendor/three/               ← three.js r170 (MIT)
 ```
 
 Re-export the character after editing the .blend (Blender 4.5+ Python module):
 `python tools/export_character.py`, then `npx gltf-transform weld` and `quantize` on the result.
+If the rig changes, re-bake the clips with `tools/retarget_mixamo.mjs` (instructions at its top).
+
+Blue mode (on by default) draws everything in black and #0000FF only. Toggle it with the first
+knob on the monitor's chin, the `color` terminal command, or `?blue=0`.
 
 ## Project Structure
 

@@ -9,6 +9,7 @@ import { POV } from './pov.js';
 import { InnerView } from './inner.js';
 import { ScreenUI, SCREEN_W as W, SCREEN_H as H } from './screen.js';
 import { Spring } from './springs.js';
+import { blueU, BAYER_GLSL } from './halftone.js';
 
 const Q = new URLSearchParams(location.search);
 const doc = document.documentElement;
@@ -71,6 +72,18 @@ function fittedQuad() {
   return [[x, y], [x + W * s, y], [x + W * s, y + H * s], [x, y + H * s]];
 }
 
+// ------------------------------------------------------------------ blue mode
+// Only black and #0000FF, on by default. ?blue=0 or the colour knob on the monitor turns it off.
+let blue = true;
+try { const b = Q.get('blue') ?? localStorage.getItem('lwrcs-blue'); if (b !== null) blue = b !== '0'; } catch {}
+setBlue(blue, false);
+function setBlue(on, save = true) {
+  blue = on;
+  blueU.value = on ? 1 : 0;
+  doc.classList.toggle('blue', on);
+  if (save) try { localStorage.setItem('lwrcs-blue', on ? '1' : '0'); } catch {}
+}
+
 // ------------------------------------------------------------------ boot
 const bootP = ui.bootLine('LWRCS BIOS v2.6   (C) 1996-2026');
 ui.bootLine('');
@@ -82,14 +95,20 @@ applyMode();
 deskQuery.addEventListener('change', applyMode);
 addEventListener('resize', onResize);
 ui.load('data/projects.json');
+ui.onChange = (e) => {
+  if (e.type === 'open') inner?.gesture('agree');
+  if (e.type === 'color') setBlue(!blue);
+};
 
 try {
   const model = document.querySelector('meta[name="lwrcs-model"]')?.content || 'assets/models/lifetime.glb';
+  const movesP = fetch('assets/models/lifetime-moves.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const gltf = await loadModel(model, (f) => {
     loadLine.textContent = 'LOADING LIFETIME.GLB ' + String(Math.round(Math.min(1, f) * 100)).padStart(3) + '%';
   });
   povChar = cloneSkinned(gltf.scene);
-  try { inner = new InnerView(innerCanvas, gltf.scene); } catch (err) { glOK = false; console.warn(err); }
+  const moves = await movesP;
+  try { inner = new InnerView(innerCanvas, gltf.scene, { moves }); } catch (err) { glOK = false; console.warn(err); }
 } catch (err) {
   console.warn(err);
   glOK = false;
@@ -194,7 +213,7 @@ function initDesk() {
   scene.add(glow);
   for (const it of room.items) it.rest = it.anchor();
   desk = {
-    renderer, pixel, scene, camera, room, pov, glow,
+    renderer, pixel, scene, camera, room, pov, glow, post: makeBluePass(pixel),
     lamp: new Spring(1, 1.1), crt: new Spring(1, 2.5), lampOn: true, crtOn: true,
     zone: 'screen', item: null, side: 'R', intro: reduced ? 1 : 0, ray: new THREE.Raycaster(),
   };
@@ -208,6 +227,7 @@ function resizeDesk() {
   renderer.setPixelRatio(rs);
   renderer.setSize(vw, vh, false);
   pixel.value = 2 * rs;
+  desk.post.rt.setSize(Math.round(vw * rs), Math.round(vh * rs));
   camera.aspect = vw / vh;
   const d = CAM.pos.distanceTo(CAM.target);
   const tanV = Math.max(FIT.halfH / d, FIT.halfW / d / camera.aspect);
@@ -242,6 +262,27 @@ function placeScreen(k) {
   setQuad(g.map((p, i) => [lerp(f[i][0], p[0], k), lerp(f[i][1], p[1], k)]));
 }
 
+function makeBluePass(pixel) {
+  const rt = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { tRoom: { value: rt.texture }, uPixel: pixel },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `
+      uniform sampler2D tRoom; uniform float uPixel; varying vec2 vUv;
+      ${BAYER_GLSL}
+      void main() {
+        vec4 c = texture2D(tRoom, vUv);
+        if (c.a < 0.5) { gl_FragColor = vec4(0.0); return; }
+        float I = max(max(c.r, c.g), c.b);
+        gl_FragColor = I > bayer4(floor(gl_FragCoord.xy / uPixel)) ? vec4(0.0, 0.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+  return { rt, scene, camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
+}
+
 // A soft blue spill of light from the glass onto the bezel.
 function makeGlow(s) {
   const m = 0.06, cw = 160, ch = Math.round(cw * (s.h + 2 * m) / (s.w + 2 * m));
@@ -273,20 +314,20 @@ function updateZone() {
   const wx = s.center.x + (L.x / W - 0.5) * (s.w + 0.004);
   const wy = s.center.y - (L.y / H - 0.5) * (s.h + 0.004);
   const inGlass = L.x >= 0 && L.x <= W && L.y >= 0 && L.y <= H;
-  const power = room.items.find((it) => it.id === 'power');
-  const pd = Math.hypot(wx - power.rest.x, wy - power.rest.y);
   const wasMon = d.zone === 'screen' || d.zone === 'bezel';
   const lee = wasMon ? 0.035 : 0.015;
   const onBezel = Math.abs(wx - bz.center.x) < bz.w / 2 + lee && wy > bz.center.y - bz.h / 2 - lee && wy < bz.center.y + bz.h / 2 + lee;
 
   if (inGlass) return setZone('screen', null);
-  if (pd < (d.item === power ? 0.032 : 0.022)) return setZone('item', power);
+  for (const b of room.items) {
+    if (b.small && Math.hypot(wx - b.rest.x, wy - b.rest.y) < (d.item === b ? 0.032 : 0.022)) return setZone('item', b);
+  }
   if (onBezel) return setZone('bezel', null);
 
   // nearest desk item within its projected radius (a bit stickier once hovered)
   let best = null, bestD = Infinity;
   for (const it of room.items) {
-    if (it === power) continue;
+    if (it.small) continue;
     const p = _p.copy(it.rest).project(d.camera);
     const px = ((p.x + 1) / 2) * innerWidth, py = ((1 - p.y) / 2) * innerHeight;
     const depth = _p.copy(it.rest).applyMatrix4(d.camera.matrixWorldInverse).z * -1;
@@ -329,7 +370,8 @@ function setZone(zone, item) {
   // label next to the pointer
   if (zone === 'item') {
     const h = pov.hands[item.hand];
-    const txt = h.held ? 'put back' : item.id === 'power' ? (d.crtOn ? 'power off' : 'power on') : item.id === 'lamp' ? (d.lampOn ? 'lamp off' : 'lamp on') : item.label;
+    const txt = h.held ? 'put back' : item.id === 'power' ? (d.crtOn ? 'power off' : 'power on') : item.id === 'lamp' ? (d.lampOn ? 'lamp off' : 'lamp on')
+      : item.id === 'color' ? (blue ? 'colour' : 'blue only') : item.label;
     if (tagEl.textContent !== txt) tagEl.textContent = txt;
     tagEl.style.transform = `translate(${pointer.x + 18}px, ${pointer.y + 20}px)`;
     tagEl.classList.add('show');
@@ -339,8 +381,9 @@ function setZone(zone, item) {
 // ------------------------------------------------------------------ actions
 function onAction(item) {
   const d = desk;
-  if (!d.crtOn && item.id !== 'power' && item.id !== 'lamp') setCrt(true);
+  if (!d.crtOn && item.id !== 'power' && item.id !== 'lamp' && item.id !== 'color') setCrt(true);
   if (item.id === 'lamp') d.lampOn = !d.lampOn;
+  else if (item.id === 'color') { setBlue(!blue); tagEl.textContent = blue ? 'colour' : 'blue only'; }
   else if (item.id === 'power') setCrt(!d.crtOn);
   else if (item.id === 'floppy') { ui.cd('projects'); d.driveBlink = 1.2; }
   else if (item.id === 'tape') ui.cd('music');
@@ -448,12 +491,19 @@ function frameDesk(dt, t) {
   room.bulb.material.color.setRGB(0.12 + 0.88 * lamp, 0.12 + 0.78 * lamp, 0.19 + 0.5 * lamp);
   const crt = Math.max(0, d.crt.update(d.crtOn ? 1 : 0, dt));
   room.screenLight.intensity = 0.8 * crt * (0.96 + 0.04 * Math.sin(t * 50));
-  d.glow.material.opacity = crt;
+  d.glow.material.opacity = crt * (blue ? 0.4 : 1);
   room.powerLed.material.color.setHex(d.crtOn ? 0x3cff6a : 0x0b2210);
   if (d.driveBlink > 0) { d.driveBlink -= dt; room.caseLed.material.color.setHex(Math.sin(t * 40) > 0 ? 0xffb43c : 0x3cff6a); }
   else room.caseLed.material.color.setHex(0x3cff6a);
 
-  d.renderer.render(d.scene, d.camera);
+  if (blue) {
+    // blue mode: draw the room off-screen, then snap every pixel to black or #0000FF (dithering
+    // soft light like the screen glow), keeping the glass transparent
+    d.renderer.setRenderTarget(d.post.rt);
+    d.renderer.render(d.scene, d.camera);
+    d.renderer.setRenderTarget(null);
+    d.renderer.render(d.post.scene, d.post.camera);
+  } else d.renderer.render(d.scene, d.camera);
 }
 
 // test hooks
