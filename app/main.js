@@ -84,7 +84,8 @@ addEventListener('resize', onResize);
 ui.load('data/projects.json');
 
 try {
-  const gltf = await new GLTFLoader().loadAsync('assets/models/lifetime.glb', (e) => {
+  const model = document.querySelector('meta[name="lwrcs-model"]')?.content || 'assets/models/lifetime.glb';
+  const gltf = await new GLTFLoader().loadAsync(model, (e) => {
     if (e.total) loadLine.textContent = 'LOADING LIFETIME.GLB ' + String(Math.round((e.loaded / e.total) * 100)).padStart(3) + '%';
   });
   povChar = cloneSkinned(gltf.scene);
