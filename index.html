@@ -1,168 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <title>lwrcs | Visual & Audio</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="lwrcs — 3D animation, music video production, and visual design portfolio." />
-    <meta property="og:title" content="lwrcs | Visual & Audio" />
-    <meta property="og:description" content="3D animation, music video production, and visual design portfolio." />
-    <meta property="og:type" content="website" />
-    <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>lwrcs</title>
+  <meta name="description" content="lwrcs: 3D animation, music videos and music. A desk, a CRT, and someone living inside it." />
+  <meta property="og:title" content="lwrcs" />
+  <meta property="og:description" content="3D animation, music videos and music." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#000008" />
+  <link rel="preload" href="assets/fonts/vt323-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="app/app.css" />
+  <link rel="modulepreload" href="vendor/three/three.module.min.js" />
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
 </head>
-
-<body>
-    <!-- Loader Animation -->
-    <div id="loader-wrapper" role="status" aria-label="Loading">
-        <div class="blob">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <div class="content">
-                <h2>Loading...</h2>
-            </div>
+<body class="loading">
+  <div id="stage">
+    <div id="screen" class="crt">
+      <div id="desk">
+        <div class="col col-l">
+          <section class="win" id="w-site">
+            <header><span>SITE:/</span><i class="b min"></i><i class="b x"></i></header>
+            <ul id="folders" class="list" aria-label="Folders"></ul>
+          </section>
+          <section class="win" id="w-info">
+            <header><span>INFO.TXT</span><i class="b min"></i><i class="b x"></i></header>
+            <div id="info" aria-live="polite"></div>
+            <div id="term"><p id="term-out"></p><p><span class="prompt">C:\&gt;</span><span id="term-in"></span><b class="caret">_</b></p></div>
+          </section>
         </div>
+        <section class="win" id="w-view">
+          <header><span id="view-title">VIEW.EXE</span><i class="b min"></i><i class="b max"></i><button class="b x" id="view-close" aria-label="Close file"></button></header>
+          <div id="view">
+            <canvas id="inner" aria-label="lifetime, a halftone character who follows your cursor"></canvas>
+            <div id="viewer"></div>
+          </div>
+        </section>
+        <div class="col col-r">
+          <section class="win" id="w-files">
+            <header><span id="files-title">FILES:/</span><i class="b min"></i><i class="b x"></i></header>
+            <ul id="files" class="list" aria-label="Files"></ul>
+          </section>
+          <section class="win" id="w-preview">
+            <header><span>PREVIEW.BMP</span><i class="b min"></i><i class="b x"></i></header>
+            <div id="preview"></div>
+          </section>
+          <section class="win" id="w-nav">
+            <header><span>NAV.DIR</span><i class="b min"></i><i class="b x"></i></header>
+            <ul id="nav" class="list"></ul>
+          </section>
+        </div>
+      </div>
+      <div id="boot" aria-hidden="true"></div>
+      <div id="pcursor" aria-hidden="true"></div>
+      <div class="fx" aria-hidden="true"></div>
     </div>
+    <canvas id="room" aria-hidden="true"></canvas>
+    <div id="tag" aria-hidden="true"></div>
+  </div>
 
-    <!-- Navigation Desktop -->
-    <div class="nav-wrap">
-        <header>
-            <h1 class="logo"><a href="index.html">lwrcs</a></h1>
-            <nav aria-label="Main navigation">
-                <ul></ul>
-            </nav>
-            <div class="nav-gradient"></div>
-        </header>
+  <noscript>
+    <div class="plain">
+      <h1>lwrcs</h1>
+      <p>Animator, director, musician.</p>
+      <p><a href="visuals/index.html">Visuals</a> · <a href="music/index.html">Music</a> · <a href="https://www.instagram.com/lwrcs/">Instagram</a></p>
     </div>
+  </noscript>
 
-    <!-- Navigation Mobile -->
-    <input type="checkbox" class="dropdown-toggle" id="dropdown-menu" aria-hidden="true" />
-    <label for="dropdown-menu" class="dropdown-label" aria-label="Toggle navigation menu">
-        <div class="hamburger">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </div>
-    </label>
-    <ul class="dropdown-menu" role="navigation" aria-label="Mobile navigation"></ul>
-
-    <!-- ===== HERO SECTION ===== -->
-    <section class="hero">
-        <div class="hero-video-wrap">
-            <video class="hero-video" autoplay muted loop playsinline>
-                <source src="img/portfolio/lwrcs studios edit_uncrop.mp4" type="video/mp4" />
-            </video>
-            <div class="hero-overlay"></div>
-        </div>
-        <div class="hero-content">
-            <h2 class="hero-logo">lwrcs</h2>
-            <p class="hero-tagline">Animator &middot; Director &middot; Musician</p>
-            <a href="#featured" class="hero-cta">View Work</a>
-        </div>
-        <div class="hero-scroll-hint" aria-hidden="true">
-            <span></span>
-        </div>
-    </section>
-
-    <!-- ===== FEATURED WORK ===== -->
-    <section class="featured" id="featured">
-        <h2 class="section-title">Featured Work</h2>
-        <div class="featured-grid">
-            <a href="visuals/index.html?vid=BiHXwpY-_Bw" class="featured-card">
-                <img src="https://img.youtube.com/vi/BiHXwpY-_Bw/maxresdefault.jpg" alt="lwrcs Visuals Reel 2024" class="featured-thumb" loading="lazy" />
-                <div class="featured-info">
-                    <span class="featured-name">lwrcs</span>
-                    <span class="featured-title">lwrcs Visuals Reel 2024</span>
-                </div>
-            </a>
-            <a href="visuals/index.html?vid=4Gd6xozOIHw" class="featured-card">
-                <img src="https://img.youtube.com/vi/4Gd6xozOIHw/maxresdefault.jpg" alt="See Right Through You Music Video" class="featured-thumb" loading="lazy" />
-                <div class="featured-info">
-                    <span class="featured-name">K33G</span>
-                    <span class="featured-title">"See Right Through You" Music Video</span>
-                </div>
-            </a>
-            <a href="visuals/index.html?vid=10j4rU0ltG4" class="featured-card">
-                <img src="https://img.youtube.com/vi/10j4rU0ltG4/maxresdefault.jpg" alt="Close to You Animation" class="featured-thumb" loading="lazy" />
-                <div class="featured-info">
-                    <span class="featured-name">PinkPantheress</span>
-                    <span class="featured-title">Close to You Animation</span>
-                </div>
-            </a>
-            <a href="visuals/index.html?title=Club Promotion Animation" class="featured-card">
-                <img src="img/thumbnail/brainchild.jpg" alt="BrainChildLabs Club Promotion" class="featured-thumb" loading="lazy" />
-                <div class="featured-info">
-                    <span class="featured-name">BrainChildLabs</span>
-                    <span class="featured-title">Club Promotion Animation</span>
-                </div>
-            </a>
-        </div>
-        <a href="visuals/index.html" class="featured-view-all">See All Projects &rarr;</a>
-    </section>
-
-    <!-- ===== ABOUT ===== -->
-    <section class="about" id="about">
-        <div class="about-inner">
-            <h2 class="section-title">About</h2>
-            <img src="img/portfolio/lwrcs_portrait.jpeg" alt="lwrcs" class="about-portrait" />
-            <p class="about-text">
-                I'm lwrcs — an animator, director, and musician. I create 3D animation
-                and direct music videos for artists, handling everything from modeling and
-                rigging to cinematography, editing, and color. When I'm not working on
-                visuals for others, I'm making my own music.
-            </p>
-            <div class="about-services">
-                <div class="service-item">
-                    <span class="service-icon">◆</span>
-                    <h3>3D Animation</h3>
-                    <p>Character modeling, rigging, animation, and rendering for music videos and commercial projects.</p>
-                </div>
-                <div class="service-item">
-                    <span class="service-icon">◆</span>
-                    <h3>Music Videos</h3>
-                    <p>Full creative direction — directing, cinematography, editing, and color grading.</p>
-                </div>
-                <div class="service-item">
-                    <span class="service-icon">◆</span>
-                    <h3>Visual Design</h3>
-                    <p>Cover art, brand identity, motion graphics, and everything in between.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== MUSIC CALLOUT ===== -->
-    <section class="music-callout" id="music">
-        <div class="music-callout-inner">
-            <span class="music-callout-label">The other side</span>
-            <h2 class="music-callout-title">I also make music.</h2>
-            <p class="music-callout-text">
-                Beyond the visual work, I write and produce my own tracks under the same name.
-                It's a different world — but it all comes from the same place.
-            </p>
-            <a href="music/index.html" class="music-callout-cta">Listen &rarr;</a>
-        </div>
-    </section>
-
-    <!-- ===== FOOTER ===== -->
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <h2 class="footer-logo">lwrcs</h2>
-            <div class="footer-links">
-                <a href="visuals/index.html">Visuals</a>
-                <a href="music/index.html">Music</a>
-            </div>
-            <p class="footer-copy">&copy; 2026 lwrcs. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="js/config.js"></script>
-    <script src="js/menu.js"></script>
-    <script src="js/loader.js"></script>
-    <script src="js/homepage.js"></script>
+  <script type="module" src="app/main.js"></script>
 </body>
-
 </html>

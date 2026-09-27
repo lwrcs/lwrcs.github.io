@@ -4,11 +4,36 @@ Portfolio website for lwrcs — 3D animation, music video production, and visual
 
 ---
 
+## Homepage: the CRT desk (`index.html` + `app/`)
+
+The homepage is a first-person desk scene. On desktop, a WebGL room (`app/room.js`) is drawn
+over a real DOM "screen" (`#screen`), with the monitor glass cut out and the DOM warped onto it
+every frame with a `matrix3d` homography, so everything on the monitor is ordinary, clickable HTML.
+On phones and small windows the screen is the whole page.
+
+```
+app/
+├── main.js      ← modes, homography, cursor zones, frame loop
+├── screen.js    ← the desktop UI inside the monitor (folders, files, viewer, terminal)
+├── room.js      ← desk, CRT, keyboard, mouse and the items you can reach for
+├── pov.js       ← first-person arms: mouse, keyboard, reach, press, grab
+├── inner.js     ← the character living inside VIEW.EXE
+├── rig.js       ← procedural rig control (IK, hand frames, finger poses)
+├── springs.js   ← critically damped springs: things can lag, never jump
+├── halftone.js  ← web port of the "Pixel Shaded.005" Blender material
+└── dev/         ← tuning pages (rest pose, inner view)
+assets/models/lifetime.glb  ← character, exported by tools/export_character.py
+vendor/three/               ← three.js r170 (MIT)
+```
+
+Re-export the character after editing the .blend (Blender 4.5+ Python module):
+`python tools/export_character.py`, then `npx gltf-transform weld` and `quantize` on the result.
+
 ## Project Structure
 
 ```
 lwrcs.github.io/
-├── index.html              ← Homepage (landing page)
+├── index.html              ← Homepage (CRT desk, see above)
 ├── styles.css              ← Main CSS entry point (imports partials)
 ├── CNAME                   ← Custom domain config
 │

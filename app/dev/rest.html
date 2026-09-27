@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>rest</title>
+<style>html,body{margin:0;background:#222}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"../../vendor/three/three.module.min.js","three/addons/":"../../vendor/three/addons/"}}</script>
+</head><body><canvas id="c" width="900" height="900" style="width:900px;height:900px"></canvas>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { applyCharacterMaterials, pixelUniform } from '../halftone.js';
+import { Rig } from '../rig.js';
+const Q=new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: false });
+r.setPixelRatio(1); r.setSize(900, 900, false);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(Q.get('bg') ? +('0x' + Q.get('bg')) : 0x333333);
+const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50); cam.position.set(0, +(Q.get('cy')||1.1), +(Q.get('cz')||4.6)); cam.lookAt(0, +(Q.get('ty')||1.05), 0);
+scene.add(new THREE.AmbientLight(0xffffff, +(Q.get('amb')||0.2)));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-3, 2.5, 2.5); key.intensity=+(Q.get('key')||2.2); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.6); fill.position.set(3, 1, -1); fill.intensity=+(Q.get('fill')||0.5); scene.add(fill);
+const gltf = await new GLTFLoader().loadAsync('../../assets/models/lifetime.glb');
+const px = pixelUniform(+(Q.get('px')||2));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x000000, +(Q.get('hemi')||0)));
+const mats = applyCharacterMaterials(gltf.scene, px, { gain: +(new URLSearchParams(location.search).get('gain') || 3.1) });
+scene.add(gltf.scene);
+const rig = new Rig(gltf.scene);
+window.rig = rig; window.THREE = THREE;
+const names = Object.keys(rig.bones); document.title = 'bones:' + names.length;
+const box = new THREE.Box3().setFromObject(gltf.scene); console.log('BOX', JSON.stringify(box));
+r.render(scene, cam);
+window.__ready = true;
+</script></body></html>
