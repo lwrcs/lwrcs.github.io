@@ -3,6 +3,8 @@
 # Open the character .blend in Blender (4.4 or newer), go to the Scripting tab, open this file
 # and press Run Script. It adds four actions to the Evilcase rig:
 #   lifetime_idle, lifetime_walk (loops), lifetime_nod, lifetime_shake (upper body gestures)
+# A loop's frame range stops one frame before its last key, which repeats the first key so the
+# curves (each with a Cycles modifier) run smoothly across the seam.
 # keyed on the rig's controls: spine and shoulder rotations, the wristik / heelik IK targets,
 # the elbowik / kneeik poles, and hand, foot and toe rotations. Switch between them in the
 # Action Editor. It also sets the scene to 30 fps (the site's rate) and the rig to Pose Position.
@@ -52,9 +54,12 @@ def main():
                 fc = act.fcurves.new(dp, index=index, action_group=bone)
             fc.keyframe_points.add(len(values))
             fc.keyframe_points.foreach_set('co', [c for f, v in enumerate(values) for c in (1 + f, v)])
+            if clip['loop']:
+                fc.modifiers.new('CYCLES')
             fc.update()
         act.use_frame_range = True
-        act.frame_start, act.frame_end = 1, 1 + clip['frames']
+        # a loop's last key is a copy of its first, so it plays up to the frame before that copy
+        act.frame_start, act.frame_end = 1, clip['frames'] + (0 if clip['loop'] else 1)
         act.use_cyclic = clip['loop']
         made.append(name)
     first = bpy.data.actions.get('lifetime_idle') if made else before

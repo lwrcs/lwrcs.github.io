@@ -108,7 +108,13 @@ export class Rig {
         const bq = bone.getWorldQuaternion(new THREE.Quaternion());
         const dirW = new THREE.Vector3(0, 1, 0).applyQuaternion(bq);
         const axisW = new THREE.Vector3().crossVectors(dirW, nW).normalize();
-        return { bone, rest: this.rest.get(bone).q.clone(), axis: axisW.applyQuaternion(bq.clone().invert()).normalize() };
+        // how far the modelled hand already bends this joint toward the palm (for the thumb's
+        // first joint: how far it dips below the plane of the palm)
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(bone.parent.getWorldQuaternion(new THREE.Quaternion()));
+        const curl = fn === 'thumb' && i === 1 ? Math.asin(THREE.MathUtils.clamp(dirW.dot(nW), -1, 1))
+          : Math.atan2(new THREE.Vector3().crossVectors(up, dirW).dot(axisW), up.dot(dirW));
+        const inv = bq.clone().invert();
+        return { bone, rest: this.rest.get(bone).q.clone(), axis: axisW.applyQuaternion(inv).normalize(), normal: nW.clone().applyQuaternion(inv).normalize(), curl };
       });
     }
     const spread = {};
@@ -163,6 +169,30 @@ export class Rig {
     this.b('hand.' + side).updateMatrixWorld(true);
   }
 
+  // Turn the fingers from wherever they are now (the clip's pose) toward `pose` by t. Angles are
+  // absolute here, whatever curl the hand was modelled with: 0 is each joint straight in line
+  // with the one before it, and the thumb's first angle is its tilt out of the plane of the palm.
+  // thumbOut swings the thumb away from the index finger within that plane.
+  blendFingers(side, pose, t) {
+    const H = this.hands[side];
+    for (const fn of FINGERS) {
+      const angles = pose[fn]; if (!angles) continue;
+      H.fingers[fn].forEach((j, i) => {
+        _q2.copy(j.rest);
+        if (fn === 'thumb' && i === 0 && pose.thumbOut) _q2.multiply(_q.setFromAxisAngle(j.normal, pose.thumbOut * (side === 'L' ? 1 : -1)));
+        _q2.multiply(_q.setFromAxisAngle(j.axis, angles[i] - j.curl));
+        j.bone.quaternion.slerp(_q2, t);
+      });
+    }
+    const k = { 1: -1.1, 2: -0.35, 3: 0.35, 4: 1.1 };
+    for (let i = 1; i <= 4; i++) {
+      const sp = H.spread[i];
+      _q2.copy(sp.rest).multiply(_q.setFromAxisAngle(sp.axis, -(pose.spread || 0) * k[i] * (side === 'L' ? 1 : -1)));
+      sp.bone.quaternion.slerp(_q2, t);
+    }
+    this.b('hand.' + side).updateMatrixWorld(true);
+  }
+
   palmWorld(side, out = new THREE.Vector3()) {
     const hand = this.b('hand.' + side);
     return out.copy(this.hands[side].palmLocal).applyQuaternion(hand.getWorldQuaternion(_q)).add(hand.getWorldPosition(_a));
@@ -187,6 +217,8 @@ export const POSES = {
   flat:    { thumb: [0.1, 0.05, 0.0], f_index: [0.03, 0.03, 0.02], f_middle: [0.03, 0.03, 0.02], f_ring: [0.04, 0.04, 0.03], f_pinky: [0.05, 0.05, 0.03], spread: 0.25 },
   grip:    { thumb: [0.35, 0.25, 0.15], f_index: [0.25, 0.35, 0.25], f_middle: [0.3, 0.4, 0.3], f_ring: [0.55, 0.6, 0.4], f_pinky: [0.65, 0.7, 0.45], spread: 0.02 },
   point:   { thumb: [0.55, 0.5, 0.35], f_index: [0.05, 0.08, 0.05], f_middle: [1.25, 1.35, 0.9], f_ring: [1.3, 1.4, 0.9], f_pinky: [1.3, 1.4, 0.9], spread: 0.0 },
+  // for blendFingers: absolute finger bends, flat against a pane of glass
+  glass:   { thumb: [-0.03, 0.05, 0.05], thumbOut: 0.5, f_index: [0.04, 0.06, 0.04], f_middle: [0.04, 0.06, 0.04], f_ring: [0.07, 0.08, 0.05], f_pinky: [0.1, 0.1, 0.06], spread: 0.1 },
   open:    { thumb: [-0.05, 0.05, 0.05], f_index: [0.05, 0.1, 0.1], f_middle: [0.08, 0.12, 0.1], f_ring: [0.1, 0.15, 0.1], f_pinky: [0.12, 0.15, 0.12], spread: 0.3 },
   grab:    { thumb: [0.6, 0.55, 0.45], f_index: [0.95, 1.1, 0.8], f_middle: [1.0, 1.15, 0.85], f_ring: [1.05, 1.2, 0.85], f_pinky: [1.1, 1.2, 0.9], spread: -0.05 },
   type:    { thumb: [0.2, 0.2, 0.1], f_index: [0.55, 0.65, 0.4], f_middle: [0.55, 0.7, 0.45], f_ring: [0.6, 0.7, 0.45], f_pinky: [0.6, 0.7, 0.45], spread: 0.08 },

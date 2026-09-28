@@ -6,7 +6,7 @@
 // head tracking, leaning and the hand on the glass are layered on top every frame.
 import * as THREE from 'three';
 import { applyCharacterMaterials, hullMaterial, pixelUniform, blueU, INK, BAYER_GLSL } from './halftone.js';
-import { Rig, POSES, FingerBlend, mixPose } from './rig.js';
+import { Rig, POSES } from './rig.js';
 import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
 
 // Camera: an eye in front of the glass (z = 0) looking straight in. The window is exactly the
@@ -14,6 +14,7 @@ import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
 const EYE_Y = 2.0, EYE_D = 1.25, TOP = 0.2, BOTTOM = -0.76;
 const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
 const WALK = 1.05;             // his walking speed
+const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
 
@@ -93,6 +94,8 @@ export class InnerView {
     this.turn = new Spring(0, 2.2);
     this.target = new THREE.Vector2(0.3, PACE_Z);
     this.dir = 1; this.pause = 1.2; this.standX = null;
+    this.turnSign = 0; this.turnWant = 0; this.cruise = false;   // a turn in progress: which way, and whether he walks through it
+    this.slide = new Spring(0, 1.6);                      // sidestep speed at the glass
     this.mode = 'pace';
     this.side = 'L';
     this.pressW = new Spring(0, 1.1);
@@ -104,7 +107,7 @@ export class InnerView {
     for (const s of ['L', 'R']) {
       this.hand[s] = {
         w: new Spring(0, 1.6), palm: new Spring3(V(0, 1, 0), 2.8), q: new QuatFollow(undefined, 4),
-        fingers: new FingerBlend(POSES.relaxed, 4), plant: null, pressed: false, knock: new Spring(0, 4),
+        plant: null, pressed: false, knock: new Spring(0, 4),
       };
     }
 
@@ -180,10 +183,15 @@ export class InnerView {
       // stand so the cursor is within easy reach; only move again when it leaves that reach
       const lim = this._halfW(PRESS_Z) - 0.22;
       // stand beside the cursor so it sits in front of one shoulder, not in front of his face
-      const off = (x) => gp.x - (this.side === 'L' ? 0.28 : -0.28) - x;
-      if (was !== 'press' || this.standX == null || Math.abs(off(this.standX)) > 0.3) {
-        this.side = this.pos.x < gp.x ? 'L' : 'R';
-        this.standX = clamp(gp.x - (this.side === 'L' ? 0.28 : -0.28), -lim, lim);
+      const at = (side) => gp.x - (side === 'L' ? 0.28 : -0.28);
+      // step again when the cursor drifts in front of his face, or further out than he can reach
+      const rel = this.standX == null ? 0 : (gp.x - this.standX) * (this.side === 'L' ? 1 : -1);
+      if (was !== 'press' || this.standX == null || rel < 0.1 || rel > 0.58) {
+        let side = this.pos.x < gp.x ? 'L' : 'R';
+        // hemmed in by a wall, reach with the other hand rather than across his face
+        if (Math.abs(at(side)) > lim + 0.08 && Math.abs(at(side === 'L' ? 'R' : 'L')) < Math.abs(at(side))) side = side === 'L' ? 'R' : 'L';
+        this.side = side;
+        this.standX = clamp(at(side), -lim, lim);
       }
       this.target.set(this.standX, PRESS_Z);
       this.pause = 0;
@@ -191,17 +199,21 @@ export class InnerView {
       this.standX = null;
       const lim = Math.max(0.2, this._halfW(PACE_Z) - 0.35);
       const mx = active ? clamp(this._pointerAt(PACE_Z).x, -lim, lim) : null;
-      const centre = mx ?? 0, half = mx == null ? lim : Math.min(0.28, lim);
+      // a full-length line, slid over toward the cursor rather than cut short by the walls
+      const half = mx == null ? lim : Math.min(0.6, lim);
+      const centre = clamp(mx ?? 0, half - lim, lim - half);
       if (was === 'press') { this.dir = this.pos.x < centre ? 1 : -1; this.pause = 0; }
-      this.target.set(clamp(centre + this.dir * half, -lim, lim), PACE_Z);
+      this.target.set(centre + this.dir * half, PACE_Z);
       const d = this.pos.distanceTo(this.target);
       if (this.pause > 0) {
         this.pause -= dt;
+        if (this.pause <= 0) this.dir = this.pos.x < centre ? 1 : -1;   // set off toward the far end
         this.target.copy(this.pos);
         face = mx == null ? noise1(t * 0.1, 9) * 0.5 : Math.atan2(mx - this.pos.x, EYE_D - PACE_Z) * 0.8;
-      } else if (d < 0.12 && Math.abs(this.pos.y - PACE_Z) < 0.15) {
-        this.dir = -this.dir;
-        if (!active && Math.random() < 0.4) this.pause = 1.5 + Math.random() * 2.5;
+      } else if (d < TURN_AHEAD) {
+        this.dir = -this.dir;                                // head back before arriving: a walking U-turn
+      } else if (!active && d > 0.6 && this.speed.x > WALK * 0.6 && Math.random() < dt * 0.12) {
+        this.pause = 1.5 + Math.random() * 2.5;              // now and then, stop and look out through the glass
       }
     }
     return face;
@@ -210,23 +222,47 @@ export class InnerView {
   _locomote(dt, face) {
     const to = new THREE.Vector2().subVectors(this.target, this.pos);
     const dist = to.length();
+    // at the glass, a short shuffle sideways is a sidestep, not a turn away and back
+    const sidestep = this.mode === 'press' && dist < 0.45 && Math.abs(to.y) < 0.1;
     let want = face, vWant = 0;
-    if (dist > 0.05) { want = Math.atan2(to.x, to.y); vWant = WALK * smooth(0.02, 0.45, dist); }
-    const dAng = wrap(want - this.heading);
-    vWant *= Math.max(0, Math.cos(dAng)) ** 3;                // slow right down to turn
-    const w = this.turn.update(clamp(dAng * 3.5, -2.6, 2.6), dt);
+    if (dist > 0.05 && !sidestep) {
+      want = Math.atan2(to.x, to.y);
+      vWant = WALK * (this.mode === 'pace' ? 1 : smooth(0.02, 0.45, dist));
+    }
+    let dAng = wrap(want - this.heading);
+    // a big turn keeps the direction it started in, so it can't dither between left and right.
+    // Turning right round while walking along the room, he swings through facing the glass
+    // rather than turning his back on it; otherwise he turns the short way.
+    if (this.turnSign && Math.abs(wrap(want - this.turnWant)) > 0.6) this.turnSign = 0;   // new goal: decide afresh
+    if (Math.abs(dAng) > 1.4 && !this.turnSign) {
+      const along = Math.abs(this.heading) > 0.8 && Math.abs(this.heading) < 2.4;
+      this.turnSign = Math.abs(dAng) > 2.2 && along ? -Math.sign(this.heading) : Math.sign(dAng);
+      this.turnWant = want;
+    }
+    if (Math.abs(dAng) < 0.6) this.turnSign = 0;
+    if (this.turnSign > 0 && dAng < 0) dAng += 2 * Math.PI;
+    if (this.turnSign < 0 && dAng > 0) dAng -= 2 * Math.PI;
+    // once walking he keeps walking through turns, slowing into a tight U; from a standstill he
+    // turns toward where he's going first, then sets off
+    if (this.speed.x > WALK * 0.45) this.cruise = true; else if (this.speed.x < 0.1) this.cruise = false;
+    vWant *= this.cruise ? 0.4 + 0.6 * smooth(-1, 1, Math.cos(dAng)) : smooth(0, 1, Math.cos(dAng));
+    const wMax = this.cruise ? 3.1 : 2.6;
+    const w = this.turn.update(clamp(dAng * 3.5, -wMax, wMax), dt);
     this.heading = wrap(this.heading + w * dt);
     const v = Math.max(0, this.speed.update(vWant, dt));
     this.pos.x += Math.sin(this.heading) * v * dt;
     this.pos.y += Math.cos(this.heading) * v * dt;
+    const sv = this.slide.update(sidestep ? clamp(to.x * 2.5, -0.45, 0.45) : 0, dt);
+    this.pos.x += sv * dt;
     this.pos.y = Math.min(this.pos.y, PRESS_Z);              // never walk into the glass
-    return { v, w, dist, dAng };
+    return { v, w, sv, dist, dAng };
   }
 
-  _animate(dt, v, w) {
+  _animate(dt, v, w, sv = 0) {
     const { idle, walk } = this.act;
     if (idle && walk) {
-      const step = smooth(0.3, 1.8, Math.abs(w)) * 0.55;      // shuffling feet while turning on the spot
+      // shuffling feet while turning on the spot or stepping sideways
+      const step = Math.max(smooth(0.3, 1.8, Math.abs(w)), smooth(0.03, 0.25, Math.abs(sv))) * 0.55;
       const ww = Math.max(smooth(0, WALK * 0.45, v), step);
       walk.setEffectiveWeight(ww); idle.setEffectiveWeight(1 - ww);
       walk.timeScale = Math.max(v / this.clipSpeed, step * 0.5);
@@ -249,17 +285,17 @@ export class InnerView {
     const gp = this._pointerAt(0);                            // cursor on the glass
 
     const face = this._decide(dt, t, active, inWin, gp);
-    const { v, w, dist, dAng } = this._locomote(dt, face);
+    const { v, w, sv, dist, dAng } = this._locomote(dt, face);
 
     // ---- base pose: clips ----
     rig.reset();
     this.char.position.set(this.pos.x, 0, this.pos.y);
     this.char.rotation.set(0, this.heading, 0);
     this.char.updateMatrixWorld(true);
-    this._animate(dt, v, w);
+    this._animate(dt, v, w, sv);
     this.char.updateMatrixWorld(true);
 
-    const atGlass = this.mode === 'press' && dist < 0.1 && Math.abs(dAng) < 0.35 && v < 0.2;
+    const atGlass = this.mode === 'press' && dist < 0.1 && Math.abs(dAng) < 0.35 && v < 0.2 && Math.abs(sv) < 0.15;
     const pw = this.pressW.update(atGlass ? 1 : 0, dt);
     const body = V(this.pos.x, 0, this.pos.y);
 
@@ -325,7 +361,7 @@ export class InnerView {
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
         if (!H.plant || H.plant.distanceTo(goal) > (s === main ? 0.09 : 0.2)) { this._leave(H, s); H.plant = goal.clone(); }
       }
-      if (hw < 0.01) { H.palm.snap(animPalm); H.q.snap(animQ); H.fingers.update(POSES.relaxed, dt); rig.setFingers(s, H.fingers.cur); continue; }
+      if (hw < 0.01) { H.palm.snap(animPalm); H.q.snap(animQ); continue; }
       const plant = H.plant || animPalm;
       const travel = Math.hypot(H.palm.x.x - plant.x, H.palm.x.y - plant.y);
       const lift = smooth(0.005, 0.06, travel);             // off the glass while moving, flat on it when there
@@ -342,7 +378,7 @@ export class InnerView {
       const pole = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg, -0.6, -0.45)));
       rig.armIK(s, wrist, pole);
       rig.setHand(s, q);
-      rig.setFingers(s, H.fingers.update(mixPose(POSES.relaxed, POSES.flat, hw), dt));
+      rig.blendFingers(s, POSES.glass, hw);                   // from the clip's fingers to flat on the glass
     }
 
     this.room.shadow.value.set(body.x, body.z);

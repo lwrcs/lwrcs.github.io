@@ -49,6 +49,9 @@ for act in ACTS:
     if hasattr(ad, 'action_slot') and ad.action_slot is None and len(act.slots):
         ad.action_slot = act.slots[0]
     f0, f1 = (int(round(f)) for f in act.frame_range)
+    # a loop plays f0..f1 and wraps to f0; bake the wrap frame too, so the clip's last key is its
+    # first again and the site's loop runs across the seam without holding a frame twice
+    if act.use_cyclic: f1 += 1
     frames = []
     for f in range(f0, f1 + 1):
         scene.frame_set(f)

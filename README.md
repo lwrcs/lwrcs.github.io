@@ -32,7 +32,9 @@ Re-export the character after editing the .blend (Blender 4.5+ Python module):
 `python tools/export_character.py`, then `npx gltf-transform weld` and `quantize` on the result.
 The export evaluates every action named `lifetime_*` on the full rig (IK included) and bakes it
 into the GLB; the site plays `lifetime_idle`, `lifetime_walk` (in place: the site moves him and
-matches his speed to the stride), `lifetime_nod` and `lifetime_shake`.
+matches his speed to the stride), `lifetime_nod` and `lifetime_shake`. A looping action (Cyclic
+Animation on, manual frame range) plays its range and wraps to the first frame, so its last key sits
+one frame past the range as a copy of the first; its curves carry Cycles modifiers.
 
 To edit the moves in Blender, `python tools/moves_to_blender.py <character.blend> assets/models/lifetime.glb
 assets/models/lifetime-moves.json lifetime_moves_for_blender.py` writes a script that, run in Blender's
