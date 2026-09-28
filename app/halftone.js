@@ -113,9 +113,9 @@ export function applyCharacterMaterials(root, pixel, opts = {}) {
   root.traverse((o) => {
     if (!o.isMesh) return;
     const swap = (mat) => {
-      const n = mat.name || '';
-      if (n.startsWith('Pixel Shaded')) return shaded;
-      if (n === 'Red.002') return blue;
+      if ((mat.name || '').startsWith('Pixel Shaded')) return shaded;
+      const e = mat.emissive;
+      if (e && e.b > 0.5 && e.r < 0.5 && e.g < 0.5) return blue;   // his blue-emission materials
       return outline; // 'Red', 'Pixel Outline': the black solidify shells
     };
     o.material = Array.isArray(o.material) ? o.material.map(swap) : swap(o.material);

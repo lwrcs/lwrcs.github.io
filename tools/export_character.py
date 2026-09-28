@@ -3,7 +3,7 @@
 # IK and constraints included, and baked onto the deform bones as a clip in the GLB.
 # usage: python export_character.py <character.blend> <out.glb>   (needs the bpy module, 4.5+)
 #    or: blender -b --python export_character.py -- <character.blend> <out.glb>
-import bpy, bmesh, mathutils, collections, sys, os
+import bpy, bmesh, mathutils, collections, sys, os, re
 args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
 SRC, OUT = (args + ['char.blend', 'lifetime.glb'][len(args):])[:2]
 bpy.ops.wm.open_mainfile(filepath=os.path.abspath(SRC))
@@ -15,7 +15,36 @@ arm.data.pose_position = 'POSE'
 ad = arm.animation_data or arm.animation_data_create()
 ad.use_nla = False
 baked = {}
-for act in sorted((a for a in bpy.data.actions if a.name.startswith('lifetime_')), key=lambda a: a.name):
+def rest_pose():
+    for pb in arm.pose.bones:
+        pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+
+def fcurves(act):
+    if getattr(act, 'is_action_layered', False):
+        return [fc for l in act.layers for st in l.strips for cb in st.channelbags for fc in cb.fcurves]
+    return list(act.fcurves)
+
+# A control an action doesn't key keeps the rig's own setting from the file, unless another action
+# animates it: then it sits at rest, not wherever that action happened to leave it.
+ACTS = sorted((a for a in bpy.data.actions if a.name.startswith('lifetime_')), key=lambda a: a.name)
+PROPS = ('location', 'rotation_quaternion', 'rotation_euler', 'scale')
+REST = {'location': (0, 0, 0), 'rotation_quaternion': (1, 0, 0, 0), 'rotation_euler': (0, 0, 0), 'scale': (1, 1, 1)}
+saved = {pb.name: {p: tuple(getattr(pb, p)) for p in PROPS} for pb in arm.pose.bones}
+animated = set()
+for act in ACTS:
+    for fc in fcurves(act):
+        m = re.match(r'pose\.bones\["(.+)"\]\.(\w+)$', fc.data_path)
+        vals = [k.co[1] for k in fc.keyframe_points]
+        if m and m.group(2) in REST and vals and max(vals) - min(vals) > 1e-5:
+            animated.add((m.group(1), m.group(2), fc.array_index))
+
+def base_pose():
+    for pb in arm.pose.bones:
+        for p in PROPS:
+            setattr(pb, p, [REST[p][i] if (pb.name, p, i) in animated else v for i, v in enumerate(saved[pb.name][p])])
+
+for act in ACTS:
+    base_pose()
     ad.action = act
     if hasattr(ad, 'action_slot') and ad.action_slot is None and len(act.slots):
         ad.action_slot = act.slots[0]
@@ -27,8 +56,7 @@ for act in sorted((a for a in bpy.data.actions if a.name.startswith('lifetime_')
     baked[act.name] = frames
     print("RECORDED", act.name, len(frames), "frames")
 ad.action = None
-for pb in arm.pose.bones:
-    pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+rest_pose()
 
 BODY = ['Arms.001','Body.001','Neck.001','Pants.001','Shoes.001','Sleeves.001']
 HEAD = ['Head.001','Hair.001','Glasses.001','Eyebrows']
@@ -45,9 +73,10 @@ dg = bpy.context.evaluated_depsgraph_get()
 armW = arm.matrix_world.copy(); armWi = armW.inverted()
 
 def bake(o):
-    """Return a new mesh = evaluated geometry without armature deformation, in armature space."""
+    """Return a new mesh = evaluated geometry without armature deformation, in armature space.
+    Modifiers count as they would in a render: one hidden only in the viewport still applies."""
     for m in o.modifiers:
-        if m.type=='ARMATURE': m.show_viewport=False
+        m.show_viewport = m.show_render and m.type not in ('ARMATURE', 'WAVE')
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     oe = o.evaluated_get(dg)
@@ -145,7 +174,7 @@ if baked:
             chans = []
             if max(1 - abs(q.w) for q in quats) > 1e-9:
                 chans += [('rotation_quaternion', i, [q[i] for q in quats]) for i in range(4)]
-            if max(l.length for l in locs) > 1e-4:
+            if p is None and max(l.length for l in locs) > 1e-4:   # only the root travels; joints never pull apart
                 chans += [('location', i, [l[i] for l in locs]) for i in range(3)]
             for path, i, vals in chans:
                 if max(vals) - min(vals) < 1e-6: vals = vals[:1] + [None] * (len(vals) - 2) + vals[-1:]
