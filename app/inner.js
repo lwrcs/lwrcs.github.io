@@ -6,8 +6,8 @@
 // head tracking, leaning and the hand on the glass are layered on top every frame.
 import * as THREE from 'three';
 import { applyCharacterMaterials, hullMaterial, pixelUniform, blueU, INK, BAYER_GLSL } from './halftone.js';
-import { Rig, POSES } from './rig.js';
-import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
+import { Rig, POSES, WRIST } from './rig.js';
+import { Spring, Spring3, noise1 } from './springs.js';
 
 // Camera: an eye in front of the glass (z = 0) looking straight in. The window is exactly the
 // glass, so a cursor on the window is a point on the glass. Slopes are dy per unit of distance.
@@ -17,7 +17,10 @@ const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
 const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
 const STRETCH = 0.67;          // ... and with the arm straight, reaching for a cursor further out
-const HOLD = 1.0;              // with a hand on the glass, how far the cursor can go (across) before he steps over
+const LEAN_OUT = 1.0;          // cursor this far across from where he stands: leaning right over, arm at full stretch
+const HOLD = 1.45;             // with a hand on the glass, how far the cursor can go (across) before he steps over
+const MID = 0.14;              // each hand keeps at least this far to its own side of his middle
+const GAP = 0.3;               // and this far from the other hand; the one already there moves over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
 
@@ -76,6 +79,7 @@ export class InnerView {
     // he paces at the speed his walk was animated for, so it plays here as it does in Blender,
     // and walks up to the glass a little quicker
     this.walkSpeed = this.clipSpeed;
+    measureElbows(this.char, [clips.walk, clips.idle], this.rig);
     for (const name of ['idle', 'walk']) {
       if (!clips[name]) continue;
       const a = this.mixer.clipAction(clips[name]);
@@ -123,8 +127,10 @@ export class InnerView {
     this.hand = {};
     for (const s of ['L', 'R']) {
       this.hand[s] = {
-        w: new Spring(0, 1.6), palm: new Spring3(V(0, 1, 0), 2.8), q: new QuatFollow(undefined, 4),
-        plant: null, pressed: false, knock: new Spring(0, 4), hold: false, used: false, elbow: new THREE.Vector3(),
+        w: new Spring(0, 1.6), palm: new Spring3(V(0, 1, 0), 2.8), q: new THREE.Quaternion(),   // q: the hand as last set
+        plant: null, pressed: false, knock: new Spring(0, 4), hold: false, used: false,
+        bend: 0, fresh: true,                                // how far the elbow has turned from the clip's
+        wa: [new Spring(0, 4), new Spring(0, 4), new Spring(0, 4)],   // wrist twist, bend back, bend sideways
       };
     }
 
@@ -346,8 +352,10 @@ export class InnerView {
     const sgn = main === 'L' ? 1 : -1;
     const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
     const shY = rig.b('upper_arm.L').getWorldPosition(new THREE.Vector3()).y;
-    const cr = this.crouch.update(pw * clamp(shY - 0.42 - gp.y, 0, 0.2), dt);
-    const far = this.far.update(sgn * pw * smooth(0.3, HOLD, out), dt);   // signed: + leans to his left (+x)
+    // knees bend to bring his shoulders down near a low cursor, so a hand can lie flat there with
+    // the elbow under it rather than bending the wrist back further than it goes
+    const cr = this.crouch.update(pw * clamp(shY - 0.05 - gp.y, 0, 0.35), dt);
+    const far = this.far.update(sgn * pw * smooth(0.3, LEAN_OUT, out), dt);   // signed: + leans to his left (+x)
     const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
     if (cr > 0.002 || Math.abs(far) > 0.002) {
       const feet = {};
@@ -399,7 +407,10 @@ export class InnerView {
     // ---- hands on the glass ----
     // The hand on the cursor's side goes to the cursor. The other keeps whatever hold it has,
     // without looking for a new spot, until he leans too far away from it to reach; with nothing
-    // held yet, the right hand braces low while the left reaches.
+    // held yet, the right hand braces low while the left reaches. Each hand stays on its own side
+    // of him, and when the reaching hand comes in close, the other moves over to make room.
+    const side = (x, sg) => (sg > 0 ? Math.max(x, body.x + MID) : Math.min(x, body.x - MID));
+    const mainAt = side(gp.x, sgn);
     for (const s of ['L', 'R']) {
       const H = this.hand[s], sg = s === 'L' ? 1 : -1;
       const shoulder = rig.b('upper_arm.' + s).getWorldPosition(new THREE.Vector3());
@@ -408,6 +419,8 @@ export class InnerView {
       if (s === main) goal = gp.clone();
       else if (H.hold && H.plant) goal = H.plant.clone();
       else if (s === 'R' && pw > 0.8 && !H.used) goal = V(shoulder.x - 0.12, shoulder.y - 0.32, 0);
+      if (goal) goal.x = side(goal.x, sg);
+      if (goal && s !== main && (goal.x - mainAt) * sg < GAP) goal.x = mainAt + sg * (GAP + 0.1);
       // let go once he leans well over the other way, or it's out of reach
       if (goal && s !== main && (Math.abs(far) > 0.75 || goal.distanceTo(shoulder) > STRETCH + 0.01)) goal = null;
       H.hold = !!goal && pw > 0.05;
@@ -426,30 +439,39 @@ export class InnerView {
         if (off.length() > r) off.setLength(r);
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
         if (!H.plant || H.plant.distanceTo(goal) > 0.09) { this._leave(H, s); H.plant = goal.clone(); }
-      } else if (!H.plant) H.plant = goal.clone();
-      if (hw < 0.01) { H.palm.snap(animPalm); H.q.snap(animQ); rig.b('forearm.' + s).getWorldPosition(H.elbow); continue; }
+      } else if (!H.plant || H.plant.distanceTo(goal) > 0.05) { this._leave(H, s); H.plant = goal.clone(); }
+      if (hw < 0.01) { H.palm.snap(animPalm); H.q.copy(animQ); H.bend = 0; H.fresh = true; continue; }
       const plant = H.plant || animPalm;
       const travel = Math.hypot(H.palm.x.x - plant.x, H.palm.x.y - plant.y);
       const lift = smooth(0.005, 0.06, travel);             // off the glass while moving, flat on it when there
       const knock = H.knock.update(0, dt);
       const palmT = plant.clone(); palmT.z = CONTACT - lift * 0.07 + knock * 0.05;
       const palm = H.palm.update(palmT, dt);
-      // fingers carry on along the forearm (a straight wrist), the palm flat on the glass
-      const fingers = V(palm.x - H.elbow.x, palm.y - H.elbow.y, 0);
-      if (fingers.lengthSq() < 1e-4) fingers.set(0, 1, 0);
-      fingers.normalize();
+      // The elbow drops under a high reach instead of sticking out, and goes out for a low one;
+      // then it swings round as far as it must for the palm to lie flat on the glass, fingers
+      // carrying on along the forearm, without the wrist bending or twisting further than a
+      // wrist can. It turns round the shoulder-to-wrist line from where the clip has it; H.bend
+      // is how far, eased, so it never jumps the other way round.
+      const wrist0 = rig.wristFor(s, palm, H.q, new THREE.Vector3());   // where the wrist was
+      const axis0 = wrist0.clone().sub(shoulder).normalize();
+      const clipBend = rig.b('forearm.' + s).getWorldPosition(new THREE.Vector3()).sub(shoulder);
+      const turned = (a) => square(clipBend, axis0).applyAxisAngle(axis0, a);
+      const up = smooth(-0.15, 0.35, palm.y - 0.05 - shoulder.y);
+      const pole0 = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg * (1 - 0.8 * up), -0.6 - 0.5 * up, -0.45 + 0.25 * up)));
+      const want = this._elbowFor(s, shoulder, palm, wrist0, pole0, turned(H.bend));
+      H.bend += wrap(angleAbout(turned(0), want, axis0) - H.bend) * (1 - Math.exp(-12 * dt));
+      const flat = this._flatHand(s, palm, shoulder, turned(H.bend), wrist0);
       H.pressed = hw > 0.9 && lift < 0.05 && knock > -0.1;
-      if (H.pressed) H.stamp = { p: plant.clone(), side: s, dir: fingers.clone() };
-      const qG = rig.handWorldQuat(s, fingers, Z);
-      const q = H.q.update(animQ.clone().slerp(qG, hw), dt);
-      const wristIK = rig.wristFor(s, palm, q, new THREE.Vector3());
-      const animWrist = handBone.getWorldPosition(new THREE.Vector3());
-      const wrist = animWrist.lerp(wristIK, hw);
-      // the elbow drops under a high reach instead of sticking out, and goes out for a low one
-      const up = smooth(-0.15, 0.35, wrist.y - shoulder.y);
-      const pole = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg * (1 - 0.8 * up), -0.6 - 0.5 * up, -0.45 + 0.25 * up)));
-      rig.armIK(s, wrist, pole);
-      rig.b('forearm.' + s).getWorldPosition(H.elbow);
+      if (H.pressed) H.stamp = { p: plant.clone(), side: s, dir: flat.d.clone() };
+      const wrist = handBone.getWorldPosition(new THREE.Vector3()).lerp(wrist0, hw);
+      const axis = wrist.clone().sub(shoulder).normalize();
+      const g = rig.armIK(s, wrist, shoulder.clone().add(square(clipBend, axis).applyAxisAngle(axis, H.bend * hw).multiplyScalar(0.5)));
+      // The hand turns from the clip's pose to flat on the glass the way a wrist does, through its
+      // twist and bends, each kept within what a wrist can do, so it never swings round the back.
+      const a = rig.wristLimited(s, animQ, g.f, g.A), b = rig.wristLimited(s, flat.q, g.f, g.A);
+      if (H.fresh) { H.fresh = false; for (let i = 0; i < 3; i++) H.wa[i].snap(a[i]); }
+      const q = rig.handFromAngles(s, ...H.wa.map((sp, i) => sp.update(a[i] + (b[i] - a[i]) * hw, dt)), g.f, g.A);
+      H.q.copy(q);
       rig.setHand(s, q);
       rig.blendFingers(s, POSES.glass, hw);                   // from the clip's fingers to flat on the glass
     }
@@ -462,6 +484,50 @@ export class InnerView {
       else rig.restore(this._held);                           // hold the drawing; the root has moved on
     }
     this.renderer.render(this.scene, this.camera);
+  }
+
+  // Which way the elbow should point (a unit vector off the shoulder-to-wrist line) for a palm flat
+  // on the glass: the preferred side, pole0, turned only as far as the wrist's limits need, never
+  // in across his chest (he'd rather lift the elbow), and a little reluctant to leave where it is.
+  _elbowFor(s, shoulder, palm, wrist0, pole0, now) {
+    const rig = this.rig, n = 48, lim = 0.06;                // aim a little inside the hard limits
+    const out = rig.toWorldDir(V(s === 'L' ? 1 : -1, 0, 0));
+    const dir = wrist0.clone().sub(shoulder).normalize();
+    const b0 = pole0.clone().sub(shoulder); b0.addScaledVector(dir, -b0.dot(dir)).normalize();
+    const b1 = new THREE.Vector3().crossVectors(dir, b0);
+    const at = (k) => b0.clone().multiplyScalar(Math.cos(k * 2 * Math.PI / n)).addScaledVector(b1, Math.sin(k * 2 * Math.PI / n));
+    const cost = [];
+    let best = 0;
+    for (let i = 0; i < n; i++) {
+      const k = i - n / 2, b = at(k);
+      const h = this._flatHand(s, palm, shoulder, b, wrist0);
+      const w = rig.wristAngles(s, h.q, h.g.f, h.g.A, Z);
+      const over = Math.max(0, w.twist - WRIST.supinate + lim) + Math.max(0, -WRIST.pronate + lim - w.twist) + Math.max(0, w.ext - WRIST.extend + lim);
+      const across = Math.max(0, -0.08 - h.g.elbow.clone().sub(shoulder).dot(out));
+      const phi = k * 2 * Math.PI / n, from = Math.acos(THREE.MathUtils.clamp(b.dot(now), -1, 1));
+      cost[i] = 40 * over * over + 300 * across * across + 0.1 * phi * phi + 0.05 * from * from;
+      if (cost[i] < cost[best]) best = i;
+    }
+    // between samples: the bottom of a parabola through the best one and its neighbours
+    const c0 = cost[(best + n - 1) % n], c1 = cost[best], c2 = cost[(best + 1) % n];
+    const den = c0 - 2 * c1 + c2;
+    return at(best - n / 2 + (den > 1e-9 ? THREE.MathUtils.clamp(0.5 * (c0 - c2) / den, -0.5, 0.5) : 0));
+  }
+
+  // The hand flat on the glass with its palm centre at `palm` and the fingers carrying on along
+  // the forearm, for an elbow pointing `bend`: the hand's rotation, the wrist, the fingers'
+  // direction and the arm (solved together, twice round, starting from wrist0).
+  _flatHand(s, palm, shoulder, bend, wrist0) {
+    const rig = this.rig, pole = shoulder.clone().addScaledVector(bend, 0.5), q = new THREE.Quaternion();
+    let wrist = wrist0, g, d;
+    for (let i = 0; i < 2; i++) {
+      g = rig.armFrame(s, wrist, pole, shoulder);
+      d = V(g.f.x, g.f.y, 0);
+      if (d.lengthSq() < 1e-6) d.set(0, 1, 0);
+      rig.handWorldQuat(s, d.normalize(), Z, q);
+      wrist = rig.wristFor(s, palm, q, new THREE.Vector3());
+    }
+    return { q, wrist, g, d };
   }
 
   // a hand leaving the glass leaves a palm print behind
@@ -489,6 +555,31 @@ function strideSpeed(root, clip) {
   }
   mixer.stopAllAction(); mixer.uncacheRoot(root);
   return Math.abs(dist) / clip.duration;
+}
+
+// `v` made square to the axis, as a unit vector (straight down, if it lies along the axis).
+function square(v, axis) {
+  const o = v.clone().addScaledVector(axis, -v.dot(axis));
+  if (o.lengthSq() < 1e-8) o.set(0, -1, 0).addScaledVector(axis, axis.y);
+  return o.normalize();
+}
+
+// Signed angle from `a` round `axis` to `b` (both taken square to the axis).
+function angleAbout(a, b, axis) {
+  const p = a.clone().addScaledVector(axis, -a.dot(axis)), q = b.clone().addScaledVector(axis, -b.dot(axis));
+  return Math.atan2(new THREE.Vector3().crossVectors(p, q).dot(axis), p.dot(q));
+}
+
+// Which way his elbows bend, from the clips themselves (the rig keeps it at a fixed roll).
+function measureElbows(root, clips, rig) {
+  const acc = {};
+  for (const clip of clips) {
+    if (!clip) continue;
+    const mixer = new THREE.AnimationMixer(root), a = mixer.clipAction(clip).play();
+    for (let i = 0; i < 24; i++) { a.time = (i / 24) * clip.duration; mixer.update(0); root.updateMatrixWorld(true); rig.measureElbows(acc); }
+    mixer.stopAllAction(); mixer.uncacheRoot(root);
+  }
+  rig.measureElbows(acc, true);
 }
 
 function buildInterior(pixel) {

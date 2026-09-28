@@ -21,6 +21,8 @@ export class Rig {
     for (const b of Object.values(this.bones)) this.rest.set(b, { q: b.quaternion.clone(), p: b.position.clone() });
     root.updateMatrixWorld(true);
     this.hands = { L: this._handFrame('L'), R: this._handFrame('R') };
+    // the side each arm bone bends toward at the elbow, in the bone's own frame (see measureElbows)
+    this.elbows = { L: { upper: new THREE.Vector3(0, 0, 1), fore: new THREE.Vector3(0, 0, 1) }, R: { upper: new THREE.Vector3(0, 0, 1), fore: new THREE.Vector3(0, 0, 1) } };
   }
 
   b(name) { const bone = this.bones[key(name)]; if (!bone) throw new Error('missing bone ' + name); return bone; }
@@ -94,8 +96,64 @@ export class Rig {
     lower.getWorldQuaternion(_q2); this.setWorldQuat(lower, _q.multiply(_q2));
   }
 
+  // Arms bend like an elbow: a hinge, so both bones also keep the roll it gives them (the upper arm
+  // turns with the bend, the forearm's twist starts from neutral and the hand shares it, setHand).
   armIK(side, wristWorld, poleWorld) {
-    this.twoBone(this.b('upper_arm.' + side), this.b('forearm.' + side), this.b('hand.' + side), wristWorld, poleWorld);
+    const up = this.b('upper_arm.' + side), fore = this.b('forearm.' + side), E = this.elbows[side];
+    const g = this.armFrame(side, wristWorld, poleWorld);
+    aimRoll(this, up, g.u, g.B, E.upper);
+    aimRoll(this, fore, _t.subVectors(g.reach, fore.getWorldPosition(_p)).normalize(), g.A, E.fore);
+    return g;
+  }
+
+  // Where the elbow goes for a wrist target and a pole, without moving anything: the elbow, the
+  // upper arm's direction u and the side it bends toward B, the forearm's direction f, and A,
+  // the side the forearm bends toward (toward the shoulder).
+  armFrame(side, wristWorld, poleWorld, shoulder) {
+    const a = shoulder || this.b('upper_arm.' + side).getWorldPosition(new THREE.Vector3());
+    const L = this._armLen || (this._armLen = {});
+    if (!L[side]) {
+      const s = this.b('upper_arm.' + side).getWorldPosition(new THREE.Vector3()), e = this.b('forearm.' + side).getWorldPosition(new THREE.Vector3());
+      L[side] = [s.distanceTo(e), e.distanceTo(this.b('hand.' + side).getWorldPosition(new THREE.Vector3()))];
+    }
+    const [l1, l2] = L[side];
+    const dir = new THREE.Vector3().subVectors(wristWorld, a);
+    const dist = THREE.MathUtils.clamp(dir.length(), Math.abs(l1 - l2) + 1e-4, l1 + l2 - 1e-4);
+    dir.normalize();
+    const bend = new THREE.Vector3().subVectors(poleWorld, a); bend.addScaledVector(dir, -bend.dot(dir));
+    if (bend.lengthSq() < 1e-8) bend.set(0, -1, 0).addScaledVector(dir, -dir.y);
+    bend.normalize();
+    const cosA = (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), sinA = Math.sqrt(Math.max(0, 1 - cosA * cosA));
+    const elbow = a.clone().addScaledVector(dir, l1 * cosA).addScaledVector(bend, l1 * sinA);
+    const reach = a.clone().addScaledVector(dir, dist);
+    return {
+      elbow, reach, bend,
+      u: dir.clone().multiplyScalar(cosA).addScaledVector(bend, sinA),
+      B: dir.clone().multiplyScalar(sinA).addScaledVector(bend, -cosA),
+      f: reach.clone().sub(elbow).normalize(),
+      A: bend.clone().multiplyScalar(-(dist - l1 * cosA)).addScaledVector(dir, -l1 * sinA).normalize(),
+    };
+  }
+
+  // Measure which way the clips bend each elbow, in the bones' own frames. Call once per sampled
+  // clip pose, then again with done = true.
+  measureElbows(acc, done) {
+    for (const side of ['L', 'R']) {
+      const a = acc[side] || (acc[side] = { upper: new THREE.Vector3(), fore: new THREE.Vector3() });
+      const E = this.elbows[side];
+      if (done) {
+        for (const k of ['upper', 'fore']) if (a[k].lengthSq() > 1e-6) E[k].copy(a[k].setY(0).normalize());
+        continue;
+      }
+      const up = this.b('upper_arm.' + side), fore = this.b('forearm.' + side);
+      const s = up.getWorldPosition(new THREE.Vector3()), e = fore.getWorldPosition(new THREE.Vector3()), w = this.b('hand.' + side).getWorldPosition(new THREE.Vector3());
+      const u = e.clone().sub(s).normalize(), f = w.clone().sub(e).normalize();
+      const B = w.clone().sub(e); B.addScaledVector(u, -B.dot(u));
+      const A = s.clone().sub(e); A.addScaledVector(f, -A.dot(f));
+      if (B.length() < 0.03 || A.length() < 0.03) continue;           // too straight to tell
+      a.upper.add(B.normalize().applyQuaternion(up.getWorldQuaternion(new THREE.Quaternion()).invert()));
+      a.fore.add(A.normalize().applyQuaternion(fore.getWorldQuaternion(new THREE.Quaternion()).invert()));
+    }
   }
   legIK(side, ankleWorld, poleWorld) {
     this.twoBone(this.b('thigh.' + side), this.b('shin.' + side), this.b('foot.' + side), ankleWorld, poleWorld);
@@ -142,7 +200,8 @@ export class Rig {
       spread[i] = { bone, rest: this.rest.get(bone).q.clone(), axis: nW.clone().applyQuaternion(bq.invert()).normalize() };
     }
     const restRel = hand.quaternion.clone();
-    return { basis, handQ, palmLocal, fingers, spread, restRel, n0: n, f0: f };
+    const handInv = handQ.clone().invert();
+    return { basis, handQ, palmLocal, fingers, spread, restRel, n0: n, f0: f, fLocal: f.clone().applyQuaternion(handInv), nLocal: n.clone().applyQuaternion(handInv) };
   }
 
   // World rotation that gives the hand a finger direction and palm normal (world vectors).
@@ -158,6 +217,47 @@ export class Rig {
   // Wrist position that puts the palm centre at palmWorld for the given hand rotation.
   wristFor(side, palmWorld, handWorldQ, out = new THREE.Vector3()) {
     return out.copy(this.hands[side].palmLocal).applyQuaternion(handWorldQ).negate().add(palmWorld);
+  }
+
+  // How a hand rotation sits on a forearm (direction f, bending toward A), as a real wrist would
+  // measure it: twist, the forearm turning the palm away from neutral (thumb toward A), + turning
+  // it up toward the elbow's inside (supination); ext, bent back (+) or toward the palm (−); dev,
+  // toward the thumb (+) or the little finger (−). Palm normal and fingers come back in p and d.
+  wristAngles(side, handWorldQ, f, A, palmNormal) {
+    const H = this.hands[side];
+    const d = H.fLocal.clone().applyQuaternion(handWorldQ);
+    const p = palmNormal ? palmNormal.clone() : H.nLocal.clone().applyQuaternion(handWorldQ);
+    const M = new THREE.Vector3().crossVectors(f, A).multiplyScalar(side === 'L' ? 1 : -1);  // neutral palm
+    const pf = THREE.MathUtils.clamp(p.dot(f), -1, 1);
+    const ext = Math.asin(pf);
+    const pt = p.clone().addScaledVector(f, -pf);
+    if (pt.lengthSq() < 1e-10) pt.copy(M); pt.normalize();
+    const twist = Math.atan2(pt.dot(A), pt.dot(M));
+    const tt = A.clone().multiplyScalar(Math.cos(twist)).addScaledVector(M, -Math.sin(twist));
+    const d0 = f.clone().multiplyScalar(Math.cos(ext)).addScaledVector(pt, -Math.sin(ext));
+    return { twist, ext, dev: Math.atan2(d.dot(tt), d.dot(d0)), M, d, p };
+  }
+
+  // wristAngles kept within what a wrist can do: [twist, ext, dev]. A twist past its range goes to
+  // whichever limit is nearer round the circle.
+  wristLimited(side, handWorldQ, f, A) {
+    const w = this.wristAngles(side, handWorldQ, f, A), c = THREE.MathUtils.clamp;
+    let t = w.twist;
+    if (t > WRIST.supinate || t < -WRIST.pronate) {
+      const gap = (x) => Math.abs(Math.atan2(Math.sin(t - x), Math.cos(t - x)));
+      t = gap(WRIST.supinate) < gap(-WRIST.pronate) ? WRIST.supinate : -WRIST.pronate;
+    }
+    return [t, c(w.ext, -WRIST.flex, WRIST.extend), c(w.dev, -WRIST.ulnar, WRIST.radial)];
+  }
+
+  // The hand rotation for wrist angles (as wristAngles measures them) on a forearm f bending toward A.
+  handFromAngles(side, twist, ext, dev, f, A, out = new THREE.Quaternion()) {
+    const M = new THREE.Vector3().crossVectors(f, A).multiplyScalar(side === 'L' ? 1 : -1);
+    const pt = M.clone().multiplyScalar(Math.cos(twist)).addScaledVector(A, Math.sin(twist));
+    const tt = A.clone().multiplyScalar(Math.cos(twist)).addScaledVector(M, -Math.sin(twist));
+    const p = pt.clone().multiplyScalar(Math.cos(ext)).addScaledVector(f, Math.sin(ext));
+    const d = f.clone().multiplyScalar(Math.cos(ext)).addScaledVector(pt, -Math.sin(ext)).multiplyScalar(Math.cos(dev)).addScaledVector(tt, Math.sin(dev));
+    return this.handWorldQuat(side, d, p, out);
   }
 
   // Orient the hand, sharing half of the forearm twist with the forearm to avoid a pinched wrist.
@@ -220,6 +320,23 @@ export class Rig {
     bone.getWorldPosition(out);
     return out.add(_a.set(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(_q)).multiplyScalar(0.03));
   }
+}
+
+// Wrist limits (radians). Twist from neutral (thumb toward the inside of the elbow): 106° turning
+// the palm down (pronation), 74° up, 180° in all. Bending: 60° back, 69° toward the palm, 20°
+// toward the thumb, 30° toward the little finger.
+export const WRIST = { pronate: 1.85, supinate: 1.29, extend: 1.05, flex: 1.2, radial: 0.35, ulnar: 0.52 };
+
+// Point a bone's length (local +Y) along y, turning it about that axis so its local `sideLocal`
+// faces `side` (world).
+const _mL = new THREE.Matrix4(), _mW = new THREE.Matrix4();
+function aimRoll(rig, bone, y, side, sideLocal) {
+  const lx = sideLocal, ly = _a.set(0, 1, 0), lz = _b.crossVectors(lx, ly);
+  _mL.makeBasis(lx, ly, lz);
+  const wx = _c.copy(side).addScaledVector(y, -side.dot(y)).normalize(), wz = _d.crossVectors(wx, y);
+  _mW.makeBasis(wx, y, wz);
+  _q.setFromRotationMatrix(_mW.multiply(_mL.transpose()));
+  rig.setWorldQuat(bone, _q);
 }
 
 function basisQuat(f, n) {
