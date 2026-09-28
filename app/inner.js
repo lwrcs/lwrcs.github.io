@@ -16,6 +16,7 @@ const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
 const WALK = 1.05;             // his walking speed
 const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
+const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -88,6 +89,10 @@ export class InnerView {
     this.pointer = new THREE.Vector2(0, 0);
     this.lastMove = -10;
     this.clock = 0;
+    // Animating on 2s, 3s, ...: every frame is simulated, but the picture only changes every
+    // `step` frames of a `stepFps` clock (0 = every frame), so he moves like held drawings.
+    this.step = 0; this.stepFps = 24; this._tick = null;
+    this.lookAhead = LOOK_AHEAD;
     this.pos = new THREE.Vector2(0.3, PACE_Z);           // x, z on the floor
     this.heading = 0;                                     // 0 faces the glass
     this.speed = new Spring(0, 1.4);
@@ -123,6 +128,7 @@ export class InnerView {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.renderer.setPixelRatio(dpr * displayScale);
     this.renderer.setSize(w, h, false);
+    this._tick = null;                                    // resizing clears the canvas: draw the next frame
     this.pixel.value = 2 * dpr;
     // off-axis frustum: the window shows a fixed band of heights, and as much width as it has room for
     this.hs = ((TOP - BOTTOM) / 2) * (w / h);
@@ -326,7 +332,10 @@ export class InnerView {
     rig.rotateRoot('spine.002', Z, -sgn * pw * reachX * 0.35);
 
     // ---- head: look at the cursor (or where he's going) ----
-    const lookT = active ? this._pointerAt(inWin ? 0.6 : 0.9) : V(body.x + Math.sin(this.heading) * 2, 1.85 + noise1(t * 0.2, 5) * 0.2, body.z + Math.cos(this.heading) * 2);
+    // on the glass he looks at the cursor itself; off it, at the point on the cursor's line of
+    // sight a little in front of him, so his head turns toward where it shows on screen
+    const lookT = active ? this._pointerAt(inWin ? 0 : Math.min(0, body.z + this.lookAhead))
+      : V(body.x + Math.sin(this.heading) * 2, 1.85 + noise1(t * 0.2, 5) * 0.2, body.z + Math.cos(this.heading) * 2);
     const look = this.look.update(lookT, dt);
     const lw = this.lookW.update(active ? 1 : 0.5, dt);
     const head = rig.b('spine.006').getWorldPosition(new THREE.Vector3());
@@ -383,7 +392,8 @@ export class InnerView {
 
     this.room.shadow.value.set(body.x, body.z);
     this.prints.update(dt);
-    this.renderer.render(this.scene, this.camera);
+    const tick = this.step > 0 ? Math.floor((t * this.stepFps) / this.step) : t;
+    if (tick !== this._tick) { this._tick = tick; this.renderer.render(this.scene, this.camera); }
   }
 
   // a hand leaving the glass leaves a palm print behind
@@ -438,10 +448,10 @@ function buildInterior(pixel) {
       }`,
   });
   const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(8, -BACK_Z), mat('floor', 0.9));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, -BACK_Z), mat('floor', 0.9));
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, BACK_Z / 2);
   const floorBase = new THREE.Mesh(floor.geometry, black); floorBase.rotation.copy(floor.rotation); floorBase.position.copy(floor.position); floorBase.position.y -= 0.001;
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(8, 5), mat('wall', 0.55));
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(16, 5), mat('wall', 0.55));
   wall.position.set(0, 2.5, BACK_Z);
   g.add(floorBase, floor, wall);
   return { group: g, shadow };

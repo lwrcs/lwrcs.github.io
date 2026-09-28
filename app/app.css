@@ -227,3 +227,15 @@ img.dither.big { width: auto; height: auto; max-height: 100%; object-fit: contai
 @media (prefers-reduced-motion: reduce) {
   .crt .fx { animation: none; }
 }
+
+/* development controls (#dev, or `dev` at the terminal) */
+#devpanel { position: fixed; top: 8px; left: 8px; z-index: 1000; display: grid; gap: 6px; width: 210px; padding: 0 10px 10px;
+  background: #000; color: var(--ink-hi); border: 2px solid var(--ink); font: 20px/1 var(--font); cursor: default; }
+#devpanel[hidden] { display: none; }
+#devpanel header { display: flex; justify-content: space-between; align-items: center; margin: 0 -10px; padding: 3px 10px; border-bottom: 2px solid var(--ink); }
+#devpanel label { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; }
+#devpanel output { text-align: right; color: var(--ink); }
+#devpanel input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--ink); cursor: pointer; }
+#devpanel select, #devpanel button { font: inherit; color: var(--ink-hi); background: #000; border: 2px solid var(--ink); cursor: pointer; }
+.mode-desk #devpanel, .mode-desk #devpanel * { cursor: default; }
+.mode-desk #devpanel input, .mode-desk #devpanel select, .mode-desk #devpanel button { cursor: pointer; }

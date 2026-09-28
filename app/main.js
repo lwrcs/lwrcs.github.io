@@ -7,6 +7,7 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { buildRoom, updateKeyboard, updateCable, DESK_Y } from './room.js';
 import { POV } from './pov.js';
 import { InnerView } from './inner.js';
+import { devPanel } from './devpanel.js';
 import { ScreenUI, SCREEN_W as W, SCREEN_H as H } from './screen.js';
 import { Spring } from './springs.js';
 import { blueU, BAYER_GLSL } from './halftone.js';
@@ -33,7 +34,7 @@ let mode = null;
 
 const ui = new ScreenUI(screenEl);
 const pointer = { x: innerWidth / 2, y: innerHeight * 0.4, inside: false, moved: false };
-let inner = null, povChar = null, desk = null, glOK = true, booted = false;
+let inner = null, povChar = null, desk = null, glOK = true, booted = false, dev = null;
 let clock = 0;
 const innerRect = { x: 0, y: 0, w: 1, h: 1 };
 
@@ -98,6 +99,7 @@ ui.load('data/projects.json');
 ui.onChange = (e) => {
   if (e.type === 'open') inner?.gesture('nod');
   if (e.type === 'color') setBlue(!blue);
+  if (e.type === 'dev') return dev?.toggle();
 };
 
 try {
@@ -110,7 +112,7 @@ try {
   // without them use the retargeted Mixamo clips
   let moves = Object.fromEntries(gltf.animations.filter((c) => c.name.startsWith('lifetime_')).map((c) => [c.name.slice(9), c]));
   if (!moves.idle) moves = await fetch('assets/models/lifetime-moves.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  try { inner = new InnerView(innerCanvas, gltf.scene, { moves }); } catch (err) { glOK = false; console.warn(err); }
+  try { inner = new InnerView(innerCanvas, gltf.scene, { moves }); dev = devPanel(inner); } catch (err) { glOK = false; console.warn(err); }
 } catch (err) {
   console.warn(err);
   glOK = false;
@@ -411,6 +413,7 @@ addEventListener('pointermove', (e) => {
   if (e.pointerType === 'touch' && mode === 'screen') return;
   pointer.x = e.clientX; pointer.y = e.clientY; pointer.inside = true; pointer.moved = true;
   placeCursor();                                   // immediately: the on-screen cursor never lags
+  if (mode === 'screen') inner?.setPointerClient(e.clientX, e.clientY);   // off his window too, so he can look toward it
   const hot = e.target.closest?.('#screen a, #screen button, #screen li[data-i], #screen li[data-dir]');
   pcursor.classList.toggle('hand', !!hot);
 }, { passive: true });

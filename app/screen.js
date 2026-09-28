@@ -221,6 +221,7 @@ export class ScreenUI {
       return this.print('file not found');
     }
     if (c === 'whoami') return this.print('guest');
+    if (c === 'dev') { const on = this.onChange({ type: 'dev' }); return this.print(on ? 'dev panel on' : on === false ? 'dev panel off' : 'no 3d here'); }
     if (c === 'color' || c === 'colour' || c === 'blue') { this.onChange({ type: 'color' }); return this.print(document.documentElement.classList.contains('blue') ? 'blue only' : 'colour'); }
     if (c === 'lifetime') { this.cd('music'); this.open(this.tree.music[0]); return this.print('♪'); }
     this.print(`'${cmd}' is not recognized. try help`);
