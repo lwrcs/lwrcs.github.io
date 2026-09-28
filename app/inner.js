@@ -14,11 +14,10 @@ import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
 const EYE_Y = 2.0, EYE_D = 1.25, TOP = 0.2, BOTTOM = -0.76;
 const ORTHO_Y = [-0.15, 2.45];  // dev option: a level orthographic camera showing this band of heights
 const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
-const WALK = 1.05;             // his walking speed
 const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
 const STRETCH = 0.67;          // ... and with the arm straight, reaching for a cursor further out
-const HOLD = 0.85;             // with a hand on the glass, how far the cursor can go (across) before he steps over
+const HOLD = 1.0;              // with a hand on the glass, how far the cursor can go (across) before he steps over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
 
@@ -74,6 +73,9 @@ export class InnerView {
       clips[name] = m instanceof THREE.AnimationClip ? m : THREE.AnimationClip.parse({ name, duration: m.duration, tracks: m.tracks, uuid: THREE.MathUtils.generateUUID() });
     }
     this.clipSpeed = strideSpeed(this.char, clips.walk) || 1.59;
+    // he paces at the speed his walk was animated for, so it plays here as it does in Blender,
+    // and walks up to the glass a little quicker
+    this.walkSpeed = this.clipSpeed;
     for (const name of ['idle', 'walk']) {
       if (!clips[name]) continue;
       const a = this.mixer.clipAction(clips[name]);
@@ -106,7 +108,7 @@ export class InnerView {
     this.speed = new Spring(0, 1.4);
     this.turn = new Spring(0, 2.2);
     this.target = new THREE.Vector2(0.3, PACE_Z);
-    this.dir = 1; this.pause = 1.2; this.standX = null; this.committed = false;
+    this.dir = 1; this.pause = 1.2; this.pauseFace = null; this.standX = null; this.committed = false;
     this.turnSign = 0; this.turnWant = 0; this.cruise = false;   // a turn in progress: which way, and whether he walks through it
     this.slide = new Spring(0, 1.6);                      // sidestep speed at the glass
     this.mode = 'pace';
@@ -114,7 +116,7 @@ export class InnerView {
     this.pressW = new Spring(0, 1.1);
     this.crouch = new Spring(0, 1.2);
     this.lean = new Spring(0, 1.2);
-    this.tilt = new Spring(0, 1.2);                       // sideways, toward a far cursor
+    this.far = new Spring(0, 1.0);                        // leaning out toward a far cursor, signed by side
     this.lookW = new Spring(0, 1.0);
     this.look = new Spring3(V(0, 1.9, 2), 2.4);
     this.yawU = 0; this.headYaw = new Spring(0, 2.5); this.headPitch = new Spring(0, 2.5);   // head turn, unwrapped goal and eased
@@ -122,7 +124,7 @@ export class InnerView {
     for (const s of ['L', 'R']) {
       this.hand[s] = {
         w: new Spring(0, 1.6), palm: new Spring3(V(0, 1, 0), 2.8), q: new QuatFollow(undefined, 4),
-        plant: null, pressed: false, knock: new Spring(0, 4),
+        plant: null, pressed: false, knock: new Spring(0, 4), hold: false, used: false, elbow: new THREE.Vector3(),
       };
     }
 
@@ -189,13 +191,6 @@ export class InnerView {
     return out.copy(r.origin).addScaledVector(r.direction, Math.max(0, t));
   }
 
-  _glassQuat(side, palm, body) {
-    const s = side === 'L' ? 1 : -1;
-    // fingers up and a little outward, palm flat on the glass; tilt more toward the edges
-    const up = V(0.3 * s + (palm.x - body.x - s * 0.25) * 0.5, 1, 0).normalize();
-    return this.rig.handWorldQuat(side, up, V(0, 0, 1));
-  }
-
   // ---------------------------------------------------------------- behaviour
   _decide(dt, t, active, inWin, gp) {
     const was = this.mode;
@@ -236,14 +231,23 @@ export class InnerView {
       this.target.set(centre + this.dir * half, PACE_Z);
       const d = this.pos.distanceTo(this.target);
       if (this.pause > 0) {
+        if (active) this.pause = Math.min(this.pause, 1.5);  // a cursor out there cuts a long stop short
         this.pause -= dt;
         if (this.pause <= 0) this.dir = this.pos.x < centre ? 1 : -1;   // set off toward the far end
         this.target.copy(this.pos);
-        face = mx == null ? noise1(t * 0.1, 9) * 0.5 : Math.atan2(mx - this.pos.x, EYE_D - PACE_Z) * 0.8;
+        face = mx != null ? Math.atan2(mx - this.pos.x, EYE_D - PACE_Z) * 0.8
+          : this.pauseFace ?? noise1(t * 0.1, 9) * 0.5;
       } else if (d < TURN_AHEAD) {
         this.dir = -this.dir;                                // head back before arriving: a walking U-turn
-      } else if (!active && d > 0.6 && this.speed.x > WALK * 0.6 && Math.random() < dt * 0.12) {
-        this.pause = 1.5 + Math.random() * 2.5;              // now and then, stop and look out through the glass
+      } else if (!active && d > 0.6 && this.speed.x > this.walkSpeed * 0.6 && Math.random() < dt * 0.12) {
+        // now and then he stops: to look out through the glass for a good while, or just to stand
+        // idle facing the way he was going, or off into the room
+        const r = Math.random();
+        if (r < 0.45) { this.pause = 5 + Math.random() * 10; this.pauseFace = null; }
+        else {
+          this.pause = 2.5 + Math.random() * 3.5;
+          this.pauseFace = wrap((r < 0.8 ? this.heading : Math.PI) + (Math.random() - 0.5) * 0.9);
+        }
       }
     }
     return face;
@@ -257,7 +261,7 @@ export class InnerView {
     let want = face, vWant = 0;
     if (dist > 0.05 && !sidestep) {
       want = Math.atan2(to.x, to.y);
-      vWant = WALK * (this.mode === 'pace' ? 1 : smooth(0.02, 0.45, dist));
+      vWant = this.walkSpeed * (this.mode === 'pace' ? 1 : 1.4 * smooth(0.02, 0.45, dist));
     }
     let dAng = wrap(want - this.heading);
     // a big turn keeps the direction it started in, so it can't dither between left and right.
@@ -274,7 +278,7 @@ export class InnerView {
     if (this.turnSign < 0 && dAng > 0) dAng -= 2 * Math.PI;
     // once walking he keeps walking through turns, slowing into a tight U; from a standstill he
     // turns toward where he's going first, then sets off
-    if (this.speed.x > WALK * 0.45) this.cruise = true; else if (this.speed.x < 0.1) this.cruise = false;
+    if (this.speed.x > this.walkSpeed * 0.45) this.cruise = true; else if (this.speed.x < 0.1) this.cruise = false;
     vWant *= this.cruise ? 0.4 + 0.6 * smooth(-1, 1, Math.cos(dAng)) : smooth(0, 1, Math.cos(dAng));
     const wMax = this.cruise ? 3.1 : 2.6;
     const w = this.turn.update(clamp(dAng * 3.5, -wMax, wMax), dt);
@@ -293,7 +297,7 @@ export class InnerView {
     if (idle && walk) {
       // shuffling feet while turning on the spot or stepping sideways
       const step = Math.max(smooth(0.3, 1.8, Math.abs(w)), smooth(0.03, 0.25, Math.abs(sv))) * 0.55;
-      const ww = Math.max(smooth(0, WALK * 0.45, v), step);
+      const ww = Math.max(smooth(0, this.walkSpeed * 0.45, v), step);
       walk.setEffectiveWeight(ww); idle.setEffectiveWeight(1 - ww);
       walk.timeScale = Math.max(v / this.clipSpeed, step * 0.5);
     }
@@ -336,29 +340,38 @@ export class InnerView {
     if (gp.x > body.x + 0.05) this.side = 'L'; else if (gp.x < body.x - 0.05) this.side = 'R';
     const main = this.side, other = main === 'L' ? 'R' : 'L';
 
-    // ---- crouch for low targets (feet stay where the clip put them) ----
+    // ---- body: crouch for a low cursor; for one further out than his arm, lean right over to it:
+    // hips over the leg on that side, the weight on it, the other leg lifting out the other way.
+    // Feet stay where the clip put them, except the lifted one. ----
+    const sgn = main === 'L' ? 1 : -1;
+    const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
     const shY = rig.b('upper_arm.L').getWorldPosition(new THREE.Vector3()).y;
     const cr = this.crouch.update(pw * clamp(shY - 0.42 - gp.y, 0, 0.2), dt);
-    if (cr > 0.002) {
+    const far = this.far.update(sgn * pw * smooth(0.3, HOLD, out), dt);   // signed: + leans to his left (+x)
+    const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
+    if (cr > 0.002 || Math.abs(far) > 0.002) {
       const feet = {};
       for (const s of ['L', 'R']) { const f = rig.b('foot.' + s); feet[s] = { p: f.getWorldPosition(new THREE.Vector3()), q: f.getWorldQuaternion(new THREE.Quaternion()) }; }
       this.char.position.y -= cr; this.char.updateMatrixWorld(true);
+      const hips = rig.b('spine');
+      const hp = hips.getWorldPosition(new THREE.Vector3()).add(rig.toWorldDir(V(far * 0.2, -Math.abs(far) * 0.05, 0)));
+      hips.position.copy(hips.parent.worldToLocal(hp)); hips.updateMatrixWorld(true);
+      rig.rotateRoot('spine', Z, -far * 0.3);
+      const lift = Math.abs(far), away = -Math.sign(far);
+      const tip = new THREE.Quaternion().setFromAxisAngle(rig.toWorldDir(Z.clone()), -far * 0.5);
       for (const s of ['L', 'R']) {
+        const p = feet[s].p.clone(), q = feet[s].q.clone();
+        if ((s === 'L' ? 1 : -1) === away) { p.add(rig.toWorldDir(V(away * 0.22 * lift, 0.28 * lift, 0))); q.premultiply(tip); }
         const knee = rig.b('thigh.' + s).getWorldPosition(new THREE.Vector3()).add(rig.toWorldDir(V(0, 0, 1)));
-        rig.legIK(s, feet[s].p, knee);
-        rig.setWorldQuat(rig.b('foot.' + s), feet[s].q);
+        rig.legIK(s, p, knee);
+        rig.setWorldQuat(rig.b('foot.' + s), q);
       }
     }
-
-    // ---- lean into the glass, and over toward a cursor that's further out than his arm ----
-    const sgn = main === 'L' ? 1 : -1;
-    const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
-    const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
-    const tilt = this.tilt.update(-sgn * pw * clamp((out - 0.35) * 0.9, 0, 0.45), dt);
     rig.rotateRoot('spine.001', X, ln * 0.5);
     rig.rotateRoot('spine.002', X, ln * 0.5);
-    rig.rotateRoot('spine.001', Z, tilt * 0.5);
-    rig.rotateRoot('spine.002', Z, tilt * 0.5);
+    rig.rotateRoot('spine.001', Z, -far * 0.25);
+    rig.rotateRoot('spine.002', Z, -far * 0.25);
+    rig.rotateRoot('spine.005', Z, far * 0.25);             // head kept a little more upright
 
     // ---- head: look at the cursor (or where he's going) ----
     // on the glass he looks at the cursor itself; off it, at the point on the cursor's line of
@@ -384,45 +397,59 @@ export class InnerView {
     }
 
     // ---- hands on the glass ----
+    // The hand on the cursor's side goes to the cursor. The other keeps whatever hold it has,
+    // without looking for a new spot, until he leans too far away from it to reach; with nothing
+    // held yet, the right hand braces low while the left reaches.
     for (const s of ['L', 'R']) {
       const H = this.hand[s], sg = s === 'L' ? 1 : -1;
       const shoulder = rig.b('upper_arm.' + s).getWorldPosition(new THREE.Vector3());
-      // the reaching hand goes under the cursor; the right hand braces low while the left reaches
+      if (pw < 0.05) H.used = false;
       let goal = null;
       if (s === main) goal = gp.clone();
-      else if (s === 'R' && pw > 0.8) goal = V(shoulder.x - 0.12, shoulder.y - 0.32, 0);
-      const wTarget = goal ? pw * (s === main ? 1 : 0.9) : 0;
-      const hw = H.w.update(wTarget, dt);
+      else if (H.hold && H.plant) goal = H.plant.clone();
+      else if (s === 'R' && pw > 0.8 && !H.used) goal = V(shoulder.x - 0.12, shoulder.y - 0.32, 0);
+      // let go once he leans well over the other way, or it's out of reach
+      if (goal && s !== main && (Math.abs(far) > 0.75 || goal.distanceTo(shoulder) > STRETCH + 0.01)) goal = null;
+      H.hold = !!goal && pw > 0.05;
+      if (H.hold) H.used = true;
+      const hw = H.w.update(goal ? pw : 0, dt);
       const handBone = rig.b('hand.' + s);
       const animPalm = rig.palmWorld(s, new THREE.Vector3());
       const animQ = handBone.getWorldQuaternion(new THREE.Quaternion());
       if (!goal) { this._leave(H, s); if (hw < 0.01) H.plant = null; }
-      else {
+      else if (s === main) {
         // keep it where he can reach, and only re-plant when the cursor has moved off the hand
         const dz = -shoulder.z;
-        const len = s === main ? REACH + (STRETCH - REACH) * smooth(0.45, 0.8, out) : REACH;
+        const len = REACH + (STRETCH - REACH) * smooth(0.45, 0.8, out);
         const r = Math.sqrt(Math.max(0.01, len * len - dz * dz));
         const off = new THREE.Vector2(goal.x - shoulder.x, goal.y - shoulder.y);
         if (off.length() > r) off.setLength(r);
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
-        if (!H.plant || H.plant.distanceTo(goal) > (s === main ? 0.09 : 0.2)) { this._leave(H, s); H.plant = goal.clone(); }
-      }
-      if (hw < 0.01) { H.palm.snap(animPalm); H.q.snap(animQ); continue; }
+        if (!H.plant || H.plant.distanceTo(goal) > 0.09) { this._leave(H, s); H.plant = goal.clone(); }
+      } else if (!H.plant) H.plant = goal.clone();
+      if (hw < 0.01) { H.palm.snap(animPalm); H.q.snap(animQ); rig.b('forearm.' + s).getWorldPosition(H.elbow); continue; }
       const plant = H.plant || animPalm;
       const travel = Math.hypot(H.palm.x.x - plant.x, H.palm.x.y - plant.y);
       const lift = smooth(0.005, 0.06, travel);             // off the glass while moving, flat on it when there
       const knock = H.knock.update(0, dt);
       const palmT = plant.clone(); palmT.z = CONTACT - lift * 0.07 + knock * 0.05;
       const palm = H.palm.update(palmT, dt);
+      // fingers carry on along the forearm (a straight wrist), the palm flat on the glass
+      const fingers = V(palm.x - H.elbow.x, palm.y - H.elbow.y, 0);
+      if (fingers.lengthSq() < 1e-4) fingers.set(0, 1, 0);
+      fingers.normalize();
       H.pressed = hw > 0.9 && lift < 0.05 && knock > -0.1;
-      if (H.pressed) H.stamp = { p: plant.clone(), side: s, roll: 0 };
-      const qG = this._glassQuat(s, palm, body);
+      if (H.pressed) H.stamp = { p: plant.clone(), side: s, dir: fingers.clone() };
+      const qG = rig.handWorldQuat(s, fingers, Z);
       const q = H.q.update(animQ.clone().slerp(qG, hw), dt);
       const wristIK = rig.wristFor(s, palm, q, new THREE.Vector3());
       const animWrist = handBone.getWorldPosition(new THREE.Vector3());
       const wrist = animWrist.lerp(wristIK, hw);
-      const pole = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg, -0.6, -0.45)));
+      // the elbow drops under a high reach instead of sticking out, and goes out for a low one
+      const up = smooth(-0.15, 0.35, wrist.y - shoulder.y);
+      const pole = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg * (1 - 0.8 * up), -0.6 - 0.5 * up, -0.45 + 0.25 * up)));
       rig.armIK(s, wrist, pole);
+      rig.b('forearm.' + s).getWorldPosition(H.elbow);
       rig.setHand(s, q);
       rig.blendFingers(s, POSES.glass, hw);                   // from the clip's fingers to flat on the glass
     }
@@ -439,7 +466,7 @@ export class InnerView {
 
   // a hand leaving the glass leaves a palm print behind
   _leave(H, s) {
-    if (H.stamp) { this.prints.add(H.stamp.p, s); H.stamp = null; }
+    if (H.stamp) { this.prints.add(H.stamp.p, s, H.stamp.dir); H.stamp = null; }
   }
 }
 
@@ -503,10 +530,11 @@ function printTexture() {
   const c = document.createElement('canvas'); c.width = 64; c.height = 96;
   const x = c.getContext('2d');
   x.fillStyle = '#fff';
-  const blob = (cx, cy, rx, ry, a = 0) => { x.beginPath(); x.ellipse(cx, cy, rx, ry, a, 0, Math.PI * 2); x.fill(); };
-  blob(30, 66, 17, 20);                                   // palm
-  blob(14, 34, 4.5, 11, -0.15); blob(25, 26, 4.8, 13, -0.05); blob(36, 25, 4.8, 13, 0.05); blob(46, 31, 4.3, 11, 0.15);
-  blob(52, 64, 5, 11, 0.7);                               // thumb (right hand, seen from outside)
+  // blocky: a rectangle for the palm and one for each finger
+  const bar = (cx, cy, w, h, a = 0) => { x.save(); x.translate(cx, cy); x.rotate(a); x.fillRect(-w / 2, -h / 2, w, h); x.restore(); };
+  bar(30, 67, 32, 36);                                    // palm
+  bar(15, 35, 8, 22, -0.12); bar(25, 28, 8, 26, -0.04); bar(35, 27, 8, 26, 0.04); bar(45, 32, 7, 22, 0.12);
+  bar(52, 64, 9, 20, 0.7);                                // thumb (right hand, seen from outside)
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.NoColorSpace;
   return t;
@@ -538,11 +566,11 @@ class Prints {
       this.pool.push({ mesh, m, age: 99 });
     }
   }
-  add(p, side) {
+  add(p, side, dir) {
     const slot = this.pool.reduce((a, b) => (b.age > a.age ? b : a));
     slot.age = 0; slot.mesh.visible = true;
-    slot.mesh.position.set(p.x, p.y + 0.03, -0.002);
-    slot.mesh.rotation.z = side === 'L' ? -0.3 : 0.3;
+    slot.mesh.position.set(p.x + dir.x * 0.03, p.y + dir.y * 0.03, -0.002);
+    slot.mesh.rotation.z = Math.atan2(-dir.x, dir.y);   // fingers along the hand
     slot.m.uniforms.uFlip.value = side === 'L' ? -1 : 1;
   }
   update(dt) {
