@@ -12,10 +12,13 @@ import { Spring, Spring3, QuatFollow, noise1 } from './springs.js';
 // Camera: an eye in front of the glass (z = 0) looking straight in. The window is exactly the
 // glass, so a cursor on the window is a point on the glass. Slopes are dy per unit of distance.
 const EYE_Y = 2.0, EYE_D = 1.25, TOP = 0.2, BOTTOM = -0.76;
+const ORTHO_Y = [-0.15, 2.45];  // dev option: a level orthographic camera showing this band of heights
 const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
 const WALK = 1.05;             // his walking speed
 const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
+const STRETCH = 0.67;          // ... and with the arm straight, reaching for a cursor further out
+const HOLD = 0.85;             // with a hand on the glass, how far the cursor can go (across) before he steps over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
 const CONTACT = -0.012;        // palm centre z when pressed flat on the glass
 
@@ -33,9 +36,13 @@ export class InnerView {
     this.renderer.setClearColor(0x000000, 1);
     this.pixel = pixelUniform(pixelCss);
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(40, 1, 0.05, 30);
-    this.camera.position.set(0, EYE_Y, EYE_D);
-    this.camera.updateMatrixWorld(true);
+    this.camera = this.persp = new THREE.PerspectiveCamera(40, 1, 0.05, 30);
+    this.persp.position.set(0, EYE_Y, EYE_D);
+    this.persp.updateMatrixWorld(true);
+    this.orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.05, 30);
+    this.orthoCam.position.set(0, (ORTHO_Y[0] + ORTHO_Y[1]) / 2, EYE_D);
+    this.orthoCam.updateMatrixWorld(true);
+    this.ortho = false;
 
     // Lighting tuned so the four dither bands all show on the torso.
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.05));
@@ -89,16 +96,17 @@ export class InnerView {
     this.pointer = new THREE.Vector2(0, 0);
     this.lastMove = -10;
     this.clock = 0;
-    // Animating on 2s, 3s, ...: every frame is simulated, but the picture only changes every
-    // `step` frames of a `stepFps` clock (0 = every frame), so he moves like held drawings.
-    this.step = 0; this.stepFps = 24; this._tick = null;
+    // Animating on 2s, 3s, ...: every frame is simulated and drawn, but his pose only changes every
+    // `step` frames of a `stepFps` clock (0 = every frame), like held drawings. His root (where he
+    // stands and which way he faces) still moves every frame.
+    this.step = 0; this.stepFps = 24; this._tick = null; this._held = null;
     this.lookAhead = LOOK_AHEAD;
     this.pos = new THREE.Vector2(0.3, PACE_Z);           // x, z on the floor
     this.heading = 0;                                     // 0 faces the glass
     this.speed = new Spring(0, 1.4);
     this.turn = new Spring(0, 2.2);
     this.target = new THREE.Vector2(0.3, PACE_Z);
-    this.dir = 1; this.pause = 1.2; this.standX = null;
+    this.dir = 1; this.pause = 1.2; this.standX = null; this.committed = false;
     this.turnSign = 0; this.turnWant = 0; this.cruise = false;   // a turn in progress: which way, and whether he walks through it
     this.slide = new Spring(0, 1.6);                      // sidestep speed at the glass
     this.mode = 'pace';
@@ -106,6 +114,7 @@ export class InnerView {
     this.pressW = new Spring(0, 1.1);
     this.crouch = new Spring(0, 1.2);
     this.lean = new Spring(0, 1.2);
+    this.tilt = new Spring(0, 1.2);                       // sideways, toward a far cursor
     this.lookW = new Spring(0, 1.0);
     this.look = new Spring3(V(0, 1.9, 2), 2.4);
     this.yawU = 0; this.headYaw = new Spring(0, 2.5); this.headPitch = new Spring(0, 2.5);   // head turn, unwrapped goal and eased
@@ -129,17 +138,23 @@ export class InnerView {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.renderer.setPixelRatio(dpr * displayScale);
     this.renderer.setSize(w, h, false);
-    this._tick = null;                                    // resizing clears the canvas: draw the next frame
     this.pixel.value = 2 * dpr;
     // off-axis frustum: the window shows a fixed band of heights, and as much width as it has room for
     this.hs = ((TOP - BOTTOM) / 2) * (w / h);
-    const n = this.camera.near;
-    this.camera.projectionMatrix.makePerspective(-this.hs * n, this.hs * n, TOP * n, BOTTOM * n, n, this.camera.far);
-    this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
+    const n = this.persp.near;
+    this.persp.projectionMatrix.makePerspective(-this.hs * n, this.hs * n, TOP * n, BOTTOM * n, n, this.persp.far);
+    this.persp.projectionMatrixInverse.copy(this.persp.projectionMatrix).invert();
+    // the orthographic one the same way: a fixed band of heights, as wide as the window
+    const oh = (ORTHO_Y[1] - ORTHO_Y[0]) / 2;
+    this.ohw = oh * (w / h);
+    Object.assign(this.orthoCam, { left: -this.ohw, right: this.ohw, top: oh, bottom: -oh });
+    this.orthoCam.updateProjectionMatrix();
   }
 
+  setOrtho(on) { this.ortho = !!on; this.camera = this.ortho ? this.orthoCam : this.persp; }
+
   // visible half-width of the room at depth z
-  _halfW(z) { return this.hs * (EYE_D - z); }
+  _halfW(z) { return this.ortho ? this.ohw : this.hs * (EYE_D - z); }
 
   // Pointer in the canvas' normalised device coords. Values past +-1 are fine: he looks toward them.
   setPointerNDC(x, y, moved = true) {
@@ -191,9 +206,17 @@ export class InnerView {
       const lim = this._halfW(PRESS_Z) - 0.22;
       // stand beside the cursor so it sits in front of one shoulder, not in front of his face
       const at = (side) => gp.x - (side === 'L' ? 0.28 : -0.28);
-      // step again when the cursor drifts in front of his face, or further out than he can reach
-      const rel = this.standX == null ? 0 : (gp.x - this.standX) * (this.side === 'L' ? 1 : -1);
-      if (was !== 'press' || this.standX == null || rel < 0.1 || rel > 0.58) {
+      const off = this.standX == null ? 0 : gp.x - this.standX;
+      const rel = off * (this.side === 'L' ? 1 : -1);
+      // A reach, once started, always lands: he stays put and stretches after the cursor. With
+      // a hand on the glass he stays until the cursor is further than he can lean out to (it
+      // crossing in front of him swaps hands). Before that, he steps again when the cursor
+      // drifts in front of his face or out of easy reach.
+      const landed = this.committed && this.hand[this.side].w.x > 0.9;
+      const restand = was !== 'press' || this.standX == null
+        || (!this.committed && (rel < 0.1 || rel > 0.58)) || (landed && Math.abs(off) > HOLD);
+      if (restand) {
+        this.committed = false;
         let side = this.pos.x < gp.x ? 'L' : 'R';
         // hemmed in by a wall, reach with the other hand rather than across his face
         if (Math.abs(at(side)) > lim + 0.08 && Math.abs(at(side === 'L' ? 'R' : 'L')) < Math.abs(at(side))) side = side === 'L' ? 'R' : 'L';
@@ -203,7 +226,7 @@ export class InnerView {
       this.target.set(this.standX, PRESS_Z);
       this.pause = 0;
     } else {
-      this.standX = null;
+      this.standX = null; this.committed = false;
       const lim = Math.max(0.2, this._halfW(PACE_Z) - 0.35);
       const mx = active ? clamp(this._pointerAt(PACE_Z).x, -lim, lim) : null;
       // a full-length line, slid over toward the cursor rather than cut short by the walls
@@ -304,11 +327,13 @@ export class InnerView {
     this.char.updateMatrixWorld(true);
 
     const atGlass = this.mode === 'press' && dist < 0.1 && Math.abs(dAng) < 0.35 && v < 0.2 && Math.abs(sv) < 0.15;
-    const pw = this.pressW.update(atGlass ? 1 : 0, dt);
+    if (atGlass) this.committed = true;                       // the reach has started (see _decide)
+    const pw = this.pressW.update(this.mode === 'press' && this.committed ? 1 : 0, dt);
     const body = V(this.pos.x, 0, this.pos.y);
 
-    // which hand: chosen when he picks where to stand; switch only if the cursor crosses his body
-    if (gp.x > body.x + 0.12) this.side = 'L'; else if (gp.x < body.x - 0.12) this.side = 'R';
+    // which hand: chosen when he picks where to stand; switch as soon as the cursor crosses his
+    // body, so a hand never reaches across his face
+    if (gp.x > body.x + 0.05) this.side = 'L'; else if (gp.x < body.x - 0.05) this.side = 'R';
     const main = this.side, other = main === 'L' ? 'R' : 'L';
 
     // ---- crouch for low targets (feet stay where the clip put them) ----
@@ -325,13 +350,15 @@ export class InnerView {
       }
     }
 
-    // ---- lean into the glass, bend toward the reaching hand ----
+    // ---- lean into the glass, and over toward a cursor that's further out than his arm ----
     const sgn = main === 'L' ? 1 : -1;
-    const reachX = clamp((gp.x - body.x) * sgn - 0.2, 0, 0.3);
-    const ln = this.lean.update(pw * (0.07 + reachX * 0.25), dt);
+    const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
+    const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
+    const tilt = this.tilt.update(-sgn * pw * clamp((out - 0.35) * 0.9, 0, 0.45), dt);
     rig.rotateRoot('spine.001', X, ln * 0.5);
     rig.rotateRoot('spine.002', X, ln * 0.5);
-    rig.rotateRoot('spine.002', Z, -sgn * pw * reachX * 0.35);
+    rig.rotateRoot('spine.001', Z, tilt * 0.5);
+    rig.rotateRoot('spine.002', Z, tilt * 0.5);
 
     // ---- head: look at the cursor (or where he's going) ----
     // on the glass he looks at the cursor itself; off it, at the point on the cursor's line of
@@ -373,7 +400,8 @@ export class InnerView {
       else {
         // keep it where he can reach, and only re-plant when the cursor has moved off the hand
         const dz = -shoulder.z;
-        const r = Math.sqrt(Math.max(0.01, REACH * REACH - dz * dz));
+        const len = s === main ? REACH + (STRETCH - REACH) * smooth(0.45, 0.8, out) : REACH;
+        const r = Math.sqrt(Math.max(0.01, len * len - dz * dz));
         const off = new THREE.Vector2(goal.x - shoulder.x, goal.y - shoulder.y);
         if (off.length() > r) off.setLength(r);
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
@@ -401,8 +429,12 @@ export class InnerView {
 
     this.room.shadow.value.set(body.x, body.z);
     this.prints.update(dt);
-    const tick = this.step > 0 ? Math.floor((t * this.stepFps) / this.step) : t;
-    if (tick !== this._tick) { this._tick = tick; this.renderer.render(this.scene, this.camera); }
+    if (this.step > 0) {
+      const tick = Math.floor((t * this.stepFps) / this.step);
+      if (tick !== this._tick || !this._held) { this._tick = tick; this._held = rig.capture(this._held); }
+      else rig.restore(this._held);                           // hold the drawing; the root has moved on
+    }
+    this.renderer.render(this.scene, this.camera);
   }
 
   // a hand leaving the glass leaves a palm print behind

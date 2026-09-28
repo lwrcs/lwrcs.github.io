@@ -41,8 +41,10 @@ assets/models/lifetime-moves.json lifetime_moves_for_blender.py` writes a script
 Scripting tab, keys those four actions onto the rig's own controls (IK targets, poles, spine).
 
 Dev panel: open the page with `#dev` (or `?dev`), or type `dev` at the terminal. It steps the
-character's pose like hand-drawn animation (on 1s to 6s of a 24 or 30 fps clock) and sets how far in
-front of him the point he looks at sits when the cursor is off the glass. Settings stay in that browser.
+character's pose like hand-drawn animation (on 1s to 6s of a 24 or 30 fps clock; where he stands and
+which way he faces still move every frame), switches VIEW.EXE to a level orthographic camera, and sets
+how far in front of him the point he looks at sits when the cursor is off the glass. Settings stay in
+that browser.
 
 Blue mode (on by default) draws everything in black and #0000FF only. Toggle it with the first
 knob on the monitor's chin, the `color` terminal command, or `?blue=0`.

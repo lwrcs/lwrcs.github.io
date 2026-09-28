@@ -28,15 +28,24 @@ export class Rig {
   // Back to the rest pose, or, once keepClipPose() has been called, to the pose the clips last set.
   // three.js only writes a track when its value changes, so a key held for a while (or a clip's
   // constant posture) would otherwise be wiped here and never come back.
-  reset() {
-    for (const [bone, r] of this.clip || this.rest) { bone.quaternion.copy(r.q); bone.position.copy(r.p); }
-    this.root.updateMatrixWorld(true);
-  }
+  reset() { this.restore(this.clip || this.rest); }
 
   // Call right after the mixer updates, before any procedural layer.
-  keepClipPose() {
-    this.clip ??= new Map([...this.rest.keys()].map((b) => [b, { q: new THREE.Quaternion(), p: new THREE.Vector3() }]));
-    for (const [bone, c] of this.clip) { c.q.copy(bone.quaternion); c.p.copy(bone.position); }
+  keepClipPose() { this.clip = this.capture(this.clip); }
+
+  // every bone's local transform, into (or back out of) a Map
+  capture(into) {
+    into ??= new Map();
+    for (const bone of this.rest.keys()) {
+      let c = into.get(bone);
+      if (!c) into.set(bone, (c = { q: new THREE.Quaternion(), p: new THREE.Vector3() }));
+      c.q.copy(bone.quaternion); c.p.copy(bone.position);
+    }
+    return into;
+  }
+  restore(from) {
+    for (const [bone, c] of from) { bone.quaternion.copy(c.q); bone.position.copy(c.p); }
+    this.root.updateMatrixWorld(true);
   }
 
   // ---------- world-space helpers ----------

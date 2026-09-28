@@ -1,7 +1,7 @@
 // Development controls for the character in VIEW.EXE. Hidden unless the page is opened with #dev
 // (or ?dev), or `dev` is typed at the terminal. Settings are kept in this browser only.
 const KEY = 'lwrcs-dev';
-const DEFAULTS = { step: 0, fps: 24, look: 0.6 };
+const DEFAULTS = { step: 0, fps: 24, look: 0.6, ortho: 0 };
 
 export function devPanel(inner) {
   let s = { ...DEFAULTS };
@@ -15,13 +15,14 @@ export function devPanel(inner) {
     <label>pose <output data-step></output>
       <input type="range" min="0" max="6" step="1" data-k="step"></label>
     <label>clock <select data-k="fps"><option value="24">24 fps</option><option value="30">30 fps</option></select></label>
+    <label>camera <select data-k="ortho"><option value="0">perspective</option><option value="1">ortho, level</option></select></label>
     <label>look <output data-look></output>
       <input type="range" min="0" max="1.6" step="0.05" data-k="look"></label>
     <button type="button" data-reset>reset</button>`;
   document.body.append(el);
 
   const apply = () => {
-    inner.step = s.step; inner.stepFps = s.fps; inner.lookAhead = s.look;
+    inner.step = s.step; inner.stepFps = s.fps; inner.lookAhead = s.look; inner.setOrtho(s.ortho);
     el.querySelector('[data-step]').textContent = s.step ? `on ${s.step}s, ${+(s.fps / s.step).toFixed(1)}/s` : 'every frame';
     el.querySelector('[data-look]').textContent = `${s.look.toFixed(2)} in front`;
     for (const i of el.querySelectorAll('[data-k]')) i.value = s[i.dataset.k];
