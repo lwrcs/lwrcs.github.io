@@ -1,5 +1,5 @@
 // Procedural control for the lifetime character's rig (Blender metarig export).
-// Every frame starts from the rest pose, then layers posture, IK and finger curls,
+// Every frame starts from the rest pose (or the pose the clips set), then layers posture, IK and finger curls,
 // so nothing accumulates and every input is continuous.
 import * as THREE from 'three';
 
@@ -25,9 +25,18 @@ export class Rig {
 
   b(name) { const bone = this.bones[key(name)]; if (!bone) throw new Error('missing bone ' + name); return bone; }
 
+  // Back to the rest pose, or, once keepClipPose() has been called, to the pose the clips last set.
+  // three.js only writes a track when its value changes, so a key held for a while (or a clip's
+  // constant posture) would otherwise be wiped here and never come back.
   reset() {
-    for (const [bone, r] of this.rest) { bone.quaternion.copy(r.q); bone.position.copy(r.p); }
+    for (const [bone, r] of this.clip || this.rest) { bone.quaternion.copy(r.q); bone.position.copy(r.p); }
     this.root.updateMatrixWorld(true);
+  }
+
+  // Call right after the mixer updates, before any procedural layer.
+  keepClipPose() {
+    this.clip ??= new Map([...this.rest.keys()].map((b) => [b, { q: new THREE.Quaternion(), p: new THREE.Vector3() }]));
+    for (const [bone, c] of this.clip) { c.q.copy(bone.quaternion); c.p.copy(bone.position); }
   }
 
   // ---------- world-space helpers ----------

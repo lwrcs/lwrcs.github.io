@@ -19,29 +19,17 @@ def rest_pose():
     for pb in arm.pose.bones:
         pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
 
-def fcurves(act):
-    if getattr(act, 'is_action_layered', False):
-        return [fc for l in act.layers for st in l.strips for cb in st.channelbags for fc in cb.fcurves]
-    return list(act.fcurves)
-
-# A control an action doesn't key keeps the rig's own setting from the file, unless another action
-# animates it: then it sits at rest, not wherever that action happened to leave it.
+# A control an action doesn't key holds the value it has in the file, which is what Blender shows
+# when that action plays (e.g. the walk keeps the idle's forward bend in spine.001, which it
+# doesn't key itself). Each action starts from the file's values, not from the last one baked.
 ACTS = sorted((a for a in bpy.data.actions if a.name.startswith('lifetime_')), key=lambda a: a.name)
 PROPS = ('location', 'rotation_quaternion', 'rotation_euler', 'scale')
-REST = {'location': (0, 0, 0), 'rotation_quaternion': (1, 0, 0, 0), 'rotation_euler': (0, 0, 0), 'scale': (1, 1, 1)}
 saved = {pb.name: {p: tuple(getattr(pb, p)) for p in PROPS} for pb in arm.pose.bones}
-animated = set()
-for act in ACTS:
-    for fc in fcurves(act):
-        m = re.match(r'pose\.bones\["(.+)"\]\.(\w+)$', fc.data_path)
-        vals = [k.co[1] for k in fc.keyframe_points]
-        if m and m.group(2) in REST and vals and max(vals) - min(vals) > 1e-5:
-            animated.add((m.group(1), m.group(2), fc.array_index))
 
 def base_pose():
     for pb in arm.pose.bones:
         for p in PROPS:
-            setattr(pb, p, [REST[p][i] if (pb.name, p, i) in animated else v for i, v in enumerate(saved[pb.name][p])])
+            setattr(pb, p, saved[pb.name][p])
 
 for act in ACTS:
     base_pose()

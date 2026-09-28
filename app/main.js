@@ -495,7 +495,7 @@ function frameDesk(dt, t) {
   room.lampLight.intensity = 3.5 * Math.max(0, lamp);
   room.bulb.material.color.setRGB(0.12 + 0.88 * lamp, 0.12 + 0.78 * lamp, 0.19 + 0.5 * lamp);
   const crt = Math.max(0, d.crt.update(d.crtOn ? 1 : 0, dt));
-  room.screenLight.intensity = 0.8 * crt * (0.96 + 0.04 * Math.sin(t * 50));
+  room.screenLight.intensity = 0.8 * crt * (0.992 + 0.008 * Math.sin(t * 25));
   d.glow.material.opacity = crt * (blue ? 0.4 : 1);
   room.powerLed.material.color.setHex(d.crtOn ? 0x3cff6a : 0x0b2210);
   if (d.driveBlink > 0) { d.driveBlink -= dt; room.caseLed.material.color.setHex(Math.sin(t * 40) > 0 ? 0xffb43c : 0x3cff6a); }

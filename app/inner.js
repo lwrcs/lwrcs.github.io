@@ -108,6 +108,7 @@ export class InnerView {
     this.lean = new Spring(0, 1.2);
     this.lookW = new Spring(0, 1.0);
     this.look = new Spring3(V(0, 1.9, 2), 2.4);
+    this.yawU = 0; this.headYaw = new Spring(0, 2.5); this.headPitch = new Spring(0, 2.5);   // head turn, unwrapped goal and eased
     this.hand = {};
     for (const s of ['L', 'R']) {
       this.hand[s] = {
@@ -280,6 +281,7 @@ export class InnerView {
       if (g.t > dur) { g.a.stop(); this.gest = null; }
     }
     this.mixer.update(dt);
+    this.rig.keepClipPose();
   }
 
   update(dt, t) {
@@ -340,8 +342,15 @@ export class InnerView {
     const lw = this.lookW.update(active ? 1 : 0.5, dt);
     const head = rig.b('spine.006').getWorldPosition(new THREE.Vector3());
     const d = rig.toRootDir(look.clone().sub(head));
-    const yaw = clamp(Math.atan2(d.x, d.z), -1.15, 1.15) * lw;
-    const pitch = clamp(Math.atan2(d.y, Math.hypot(d.x, d.z)), -0.6, 0.5) * lw;
+    // once the target is behind him, keep to the shoulder it went behind until it is well round
+    // the other side, and ease off rather than crane round; the head then swings across instead
+    // of flipping from one shoulder to the other in a frame
+    this.yawU += wrap(Math.atan2(d.x, d.z) - this.yawU);
+    if (Math.abs(this.yawU) > Math.PI + 0.6) this.yawU -= Math.sign(this.yawU) * 2 * Math.PI;
+    const u = Math.abs(this.yawU);
+    const turnTo = u < 1.15 ? u : Math.max(0.45, 1.15 - (u - 1.15) * 0.3);
+    const yaw = this.headYaw.update(Math.sign(this.yawU) * turnTo * lw, dt);
+    const pitch = this.headPitch.update(clamp(Math.atan2(d.y, Math.hypot(d.x, d.z)), -0.6, 0.5) * lw, dt);
     for (const [bone, k] of [['spine.004', 0.25], ['spine.005', 0.3], ['spine.006', 0.45]]) {
       rig.rotateRoot(bone, Y, yaw * k);
       rig.rotateRoot(bone, X, -pitch * k);
