@@ -29,6 +29,7 @@ const LET_GO = 0.6;            // how strained a hand holding on can get before 
 const SHOULDER = { back: 0.57, inward: Math.PI / 2, outward: 1.2 };
 const SIDESTEP = 0.5;          // fastest sidestep along the glass (m/s)
 const STEP_T = 0.3;            // one foot's sidestep, lift to landing (s)
+const STRIDE = 0.5;            // furthest a stepped foot gets from where the clip has it (m)
 const STEP_UP = 0.1;           // and how high it lifts
 const LEG_MAX = 0.9;           // hip to ankle with the knee all but straight
 const MID = 0.14;              // each hand keeps at least this far to its own side of his middle
@@ -311,7 +312,7 @@ export class InnerView {
     const sv = this.slide.update(sidestep ? clamp(to.x * 2.5, -SIDESTEP, SIDESTEP) : 0, dt);
     this.pos.x += sv * dt;
     this.pos.y = Math.min(this.pos.y, PRESS_Z);              // never walk into the glass
-    return { v, w, sv, dist, dAng };
+    return { v, w, sv, dist, dAng, sidestep };
   }
 
   _animate(dt, v, w) {
@@ -342,7 +343,7 @@ export class InnerView {
     const gp = this._pointerAt(0);                            // cursor on the glass
 
     const face = this._decide(dt, t, active, inWin, gp);
-    const { v, w, sv, dist, dAng } = this._locomote(dt, face);
+    const { v, w, sv, dist, dAng, sidestep } = this._locomote(dt, face);
 
     // ---- base pose: clips ----
     rig.reset();
@@ -369,7 +370,8 @@ export class InnerView {
     const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
     const feet = {};
     for (const s of ['L', 'R']) { const f = rig.b('foot.' + s); feet[s] = { p: f.getWorldPosition(new THREE.Vector3()), q: f.getWorldQuaternion(new THREE.Quaternion()) }; }
-    const stepping = this._step(dt, sv, feet);
+    // his own feet only while he's sidestepping along the glass: once he turns or walks off, the clip has them
+    const stepping = this._step(dt, sv, feet, sidestep && v < 0.1 && Math.abs(w) < 0.5);
     const sw = this.stepW.x;
     // knees bend as far as it takes for his hands to lie flat where they go without straining his
     // arms (worked out below, from the pose last frame)
@@ -536,15 +538,20 @@ export class InnerView {
   // where it will be under him and a little ahead, one foot at a time, the leading one first and
   // never across the other; when he stops, they step back under him. `clip` is where the clip has
   // each foot. Returns where each foot goes, and how far the hips bob, tilt and sway over the planted foot.
-  _step(dt, vx, clip) {
-    const F = this.feet, speed = Math.abs(vx), dirn = Math.sign(vx);
+  _step(dt, vx, clip, on) {
+    const F = this.feet, speed = on ? Math.abs(vx) : 0, dirn = Math.sign(vx);
     const home = (s) => clip[s].p;
-    const off = (s) => F[s].at.x - home(s).x;                // + is to his left of where it would be
     for (const s of ['L', 'R']) if (!F[s].at) F[s].at = home(s).clone();
+    const off = (s) => F[s].at.x - home(s).x;                // + is to his left of where it would be
+    const err = (s) => Math.hypot(off(s), F[s].at.z - home(s).z);
     const swinging = F.L.t < 1 ? 'L' : F.R.t < 1 ? 'R' : null;
-    const settled = !swinging && Math.abs(off('L')) < 0.03 && Math.abs(off('R')) < 0.03;
-    const w = this.stepW.update(speed > 0.02 || !settled ? 1 : 0, dt);
-    if (w < 0.002 && settled) { F.L.at = null; F.R.at = null; return { L: home('L'), R: home('R'), bob: 0, tilt: 0, sway: 0 }; }
+    const settled = !swinging && err('L') < 0.03 && err('R') < 0.03;
+    // off (turning, walking, not at the glass): no new steps, and the feet go back to the clip
+    const w = this.stepW.update(on && (speed > 0.02 || !settled) ? 1 : 0, dt);
+    if (w < 0.002 && (settled || !on)) {
+      F.L.at = F.R.at = null; F.L.t = F.R.t = 1;
+      return { L: home('L'), R: home('R'), bob: 0, tilt: 0, sway: 0 };
+    }
     // where a foot lands: the spot under him once it's down, a little ahead in the way he's going,
     // and at least a foot's width from the other one, on its own side
     const aim = (s, t) => {
@@ -553,10 +560,11 @@ export class InnerView {
       p.x = s === 'L' ? clamp(p.x, o + 0.14, o + 0.6) : clamp(p.x, o - 0.6, o - 0.14);
       return p;
     };
-    if (!swinging) {
-      // the foot furthest behind where it would be under him goes next (the leading one, if it's close)
+    if (!swinging && on) {
+      // the foot furthest behind where it would be under him goes next (the leading one, if it's close);
+      // one that has drifted forward or back of it steps back under him too
       const moving = speed > 0.02, lead = dirn > 0 ? 'L' : 'R';
-      const behind = (s) => (moving ? -off(s) * dirn : Math.abs(off(s)));
+      const behind = (s) => (moving ? Math.max(-off(s) * dirn, Math.abs(F[s].at.z - home(s).z)) : err(s));
       let s = behind('L') > behind('R') ? 'L' : 'R';
       if (moving && Math.abs(behind('L') - behind('R')) < 0.02) s = lead;
       if (Math.max(behind('L'), behind('R')) > (moving ? Math.max(0.05, speed * STEP_T * 0.7) : 0.03)) { F[s].from = F[s].at.clone(); F[s].t = 0; }
@@ -572,6 +580,9 @@ export class InnerView {
         res.bob += 0.022 * up; res.tilt = (s === 'L' ? 1 : -1) * 0.07 * up; res.sway = (s === 'L' ? -1 : 1) * 0.035 * up;
         if (f.t >= 1) f.at = to;
       } else res[s] = f.at.clone();
+      // never further from where the clip has it than a stride: past that it gives, rather than his leg
+      const d = res[s].clone().sub(home(s)); d.y = 0;
+      if (d.length() > STRIDE) res[s].sub(d.multiplyScalar(1 - STRIDE / d.length()));
     }
     return res;
   }
