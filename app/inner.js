@@ -10,8 +10,10 @@ import { Rig, POSES, WRIST } from './rig.js';
 import { Spring, Spring3, noise1 } from './springs.js';
 
 // Camera: an eye in front of the glass (z = 0) looking straight in. The window is exactly the
-// glass, so a cursor on the window is a point on the glass. Slopes are dy per unit of distance.
-const EYE_Y = 2.0, EYE_D = 1.25, TOP = 0.2, BOTTOM = -0.76;
+// glass, so a cursor on the window is a point on the glass. The eye is `eyeD` in front of it at
+// height `eyeY`, and the window always shows the glass from height `low` to `high` (m), as wide as
+// it is. This is the desk's VIEW.EXE; a page can frame him differently (the `frame` option).
+const FRAME = { eyeY: 2.0, eyeD: 1.25, low: 1.05, high: 2.25 };
 const ORTHO_Y = [-0.15, 2.45];  // dev option: a level orthographic camera showing this band of heights
 const PACE_Z = -1.6, PRESS_Z = -0.42, BACK_Z = -3.2;
 const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he starts turning back
@@ -45,19 +47,16 @@ const X = V(1, 0, 0), Y = V(0, 1, 0), Z = V(0, 0, 1);
 
 export class InnerView {
   // moves: { idle, walk, nod, shake }, each an AnimationClip or a clip in three's JSON form
-  constructor(canvas, characterScene, { moves = null, pixelCss = 2 } = {}) {
+  constructor(canvas, characterScene, { moves = null, pixelCss = 2, frame = null } = {}) {
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: true });
     this.renderer.setClearColor(0x000000, 1);
     this.pixel = pixelUniform(pixelCss);
     this.scene = new THREE.Scene();
-    this.camera = this.persp = new THREE.PerspectiveCamera(40, 1, 0.05, 30);
-    this.persp.position.set(0, EYE_Y, EYE_D);
-    this.persp.updateMatrixWorld(true);
-    this.orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.05, 30);
-    this.orthoCam.position.set(0, (ORTHO_Y[0] + ORTHO_Y[1]) / 2, EYE_D);
-    this.orthoCam.updateMatrixWorld(true);
+    this.camera = this.persp = new THREE.PerspectiveCamera(40, 1, 0.05, 60);
+    this.orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.05, 60);
     this.ortho = false;
+    this.frame = { ...FRAME, ...frame };
 
     // Lighting tuned so the four dither bands all show on the torso.
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.05));
@@ -150,6 +149,16 @@ export class InnerView {
     }
 
     this._ray = new THREE.Raycaster();
+    this.setFrame();
+  }
+
+  // frame: any of { eyeY, eyeD, low, high }, see FRAME
+  setFrame(frame = {}) {
+    const f = Object.assign(this.frame, frame);
+    this.persp.position.set(0, f.eyeY, f.eyeD);
+    this.persp.updateMatrixWorld(true);
+    this.orthoCam.position.set(0, (ORTHO_Y[0] + ORTHO_Y[1]) / 2, f.eyeD);
+    this.orthoCam.updateMatrixWorld(true);
     this.resize();
   }
 
@@ -163,9 +172,11 @@ export class InnerView {
     this.renderer.setSize(w, h, false);
     this.pixel.value = 2 * dpr;
     // off-axis frustum: the window shows a fixed band of heights, and as much width as it has room for
-    this.hs = ((TOP - BOTTOM) / 2) * (w / h);
+    // (slopes: height per unit of distance from the eye)
+    const f = this.frame, top = (f.high - f.eyeY) / f.eyeD, bottom = (f.low - f.eyeY) / f.eyeD;
+    this.hs = ((top - bottom) / 2) * (w / h);
     const n = this.persp.near;
-    this.persp.projectionMatrix.makePerspective(-this.hs * n, this.hs * n, TOP * n, BOTTOM * n, n, this.persp.far);
+    this.persp.projectionMatrix.makePerspective(-this.hs * n, this.hs * n, top * n, bottom * n, n, this.persp.far);
     this.persp.projectionMatrixInverse.copy(this.persp.projectionMatrix).invert();
     // the orthographic one the same way: a fixed band of heights, as wide as the window
     const oh = (ORTHO_Y[1] - ORTHO_Y[0]) / 2;
@@ -177,7 +188,7 @@ export class InnerView {
   setOrtho(on) { this.ortho = !!on; this.camera = this.ortho ? this.orthoCam : this.persp; }
 
   // visible half-width of the room at depth z
-  _halfW(z) { return this.ortho ? this.ohw : this.hs * (EYE_D - z); }
+  _halfW(z) { return this.ortho ? this.ohw : this.hs * (this.frame.eyeD - z); }
 
   // Pointer in the canvas' normalised device coords. Values past +-1 are fine: he looks toward them.
   setPointerNDC(x, y, moved = true) {
@@ -257,7 +268,7 @@ export class InnerView {
         this.pause -= dt;
         if (this.pause <= 0) this.dir = this.pos.x < centre ? 1 : -1;   // set off toward the far end
         this.target.copy(this.pos);
-        face = mx != null ? Math.atan2(mx - this.pos.x, EYE_D - PACE_Z) * 0.8
+        face = mx != null ? Math.atan2(mx - this.pos.x, this.frame.eyeD - PACE_Z) * 0.8
           : this.pauseFace ?? noise1(t * 0.1, 9) * 0.5;
       } else if (d < TURN_AHEAD) {
         this.dir = -this.dir;                                // head back before arriving: a walking U-turn
@@ -790,11 +801,11 @@ function buildInterior(pixel) {
       }`,
   });
   const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, -BACK_Z), mat('floor', 0.9));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, -BACK_Z), mat('floor', 0.9));
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, BACK_Z / 2);
   const floorBase = new THREE.Mesh(floor.geometry, black); floorBase.rotation.copy(floor.rotation); floorBase.position.copy(floor.position); floorBase.position.y -= 0.001;
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(16, 5), mat('wall', 0.55));
-  wall.position.set(0, 2.5, BACK_Z);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(60, 8), mat('wall', 0.55));
+  wall.position.set(0, 4, BACK_Z);
   g.add(floorBase, floor, wall);
   return { group: g, shadow };
 }
