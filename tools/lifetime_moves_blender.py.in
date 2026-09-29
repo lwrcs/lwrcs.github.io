@@ -1,0 +1,73 @@
+# lifetime's moves from lwrcs.com, as Blender actions.
+#
+# Open the character .blend in Blender (4.4 or newer), go to the Scripting tab, open this file
+# and press Run Script. It adds four actions to the Evilcase rig:
+#   lifetime_idle, lifetime_walk (loops), lifetime_nod, lifetime_shake (upper body gestures)
+# A loop's frame range stops one frame before its last key, which repeats the first key so the
+# curves (each with a Cycles modifier) run smoothly across the seam.
+# keyed on the rig's controls: spine and shoulder rotations, the wristik / heelik IK targets,
+# the elbowik / kneeik poles, and hand, foot and toe rotations. Switch between them in the
+# Action Editor. It also sets the scene to 30 fps (the site's rate) and the rig to Pose Position.
+# Actions that already exist are left alone, so rename or delete one to import it again.
+#
+# Edit them, add your own lifetime_* actions if you like, save, and send the .blend back;
+# tools/export_character.py bakes every lifetime_* action into the site's model.
+# Keep the walk in place (no forward travel): the site moves him and matches the stride.
+import bpy, base64, json, zlib
+
+DATA = """
+@DATA@
+"""
+
+
+def main():
+    moves = json.loads(zlib.decompress(base64.b64decode(''.join(DATA.split()))))
+    need = moves['bones']
+    arm = bpy.data.objects.get(moves['armature'])
+    if arm is None or arm.type != 'ARMATURE' or any(b not in arm.pose.bones for b in need):
+        arm = next((o for o in bpy.data.objects if o.type == 'ARMATURE' and all(b in o.pose.bones for b in need)), None)
+    if arm is None:
+        raise RuntimeError('No armature here has the lifetime rig controls (wristik.L, heelik.L, ...)')
+
+    scene = bpy.context.scene
+    fps = moves['fps']
+    scene.render.fps, scene.render.fps_base = fps, 1.0
+    arm.data.pose_position = 'POSE'
+    ad = arm.animation_data or arm.animation_data_create()
+    before = ad.action
+    made = []
+    for name, clip in moves['actions'].items():
+        if name in bpy.data.actions:
+            print(f'{name}: already in this file, skipped')
+            continue
+        act = bpy.data.actions.new(name)
+        act.use_fake_user = True
+        ad.action = act
+        for bone, path, index, values in clip['channels']:
+            quat = arm.pose.bones[bone].rotation_mode == 'QUATERNION'
+            if (path == 'rotation_quaternion' and not quat) or (path == 'rotation_euler' and quat):
+                print(f'{name}: {bone} rotation mode changed since export; its keys went on {path}')
+            dp = f'pose.bones["{bone}"].{path}'
+            if hasattr(act, 'fcurve_ensure_for_datablock'):
+                fc = act.fcurve_ensure_for_datablock(arm, dp, index=index, group_name=bone)
+            else:  # Blender 4.3 and older
+                fc = act.fcurves.new(dp, index=index, action_group=bone)
+            fc.keyframe_points.add(len(values))
+            fc.keyframe_points.foreach_set('co', [c for f, v in enumerate(values) for c in (1 + f, v)])
+            if clip['loop']:
+                fc.modifiers.new('CYCLES')
+            fc.update()
+        act.use_frame_range = True
+        # a loop's last key is a copy of its first, so it plays up to the frame before that copy
+        act.frame_start, act.frame_end = 1, clip['frames'] + (0 if clip['loop'] else 1)
+        act.use_cyclic = clip['loop']
+        made.append(name)
+    first = bpy.data.actions.get('lifetime_idle') if made else before
+    ad.action = first
+    if first is not None and first.use_frame_range:
+        scene.frame_start, scene.frame_end = int(first.frame_start), int(first.frame_end)
+    scene.frame_set(scene.frame_start)
+    print(f'Added {", ".join(made) or "nothing"} to {arm.name} at {fps} fps')
+
+
+main()

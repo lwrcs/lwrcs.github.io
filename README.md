@@ -4,11 +4,56 @@ Portfolio website for lwrcs — 3D animation, music video production, and visual
 
 ---
 
+## Homepage: the CRT desk (`index.html` + `app/`)
+
+The homepage is a first-person desk scene. On desktop, a WebGL room (`app/room.js`) is drawn
+over a real DOM "screen" (`#screen`), with the monitor glass cut out and the DOM warped onto it
+every frame with a `matrix3d` homography, so everything on the monitor is ordinary, clickable HTML.
+On phones and small windows the screen is the whole page.
+
+```
+app/
+├── main.js      ← modes, homography, cursor zones, frame loop
+├── screen.js    ← the desktop UI inside the monitor (folders, files, viewer, terminal)
+├── room.js      ← desk, CRT, keyboard, mouse and the items you can reach for
+├── pov.js       ← first-person arms: mouse, keyboard, reach, press, grab
+├── inner.js     ← the character living inside VIEW.EXE (a room behind the glass)
+├── rig.js       ← procedural rig control (IK, hand frames, finger poses)
+├── springs.js   ← critically damped springs: things can lag, never jump
+├── halftone.js  ← web port of the "Pixel Shaded.005" Blender material, plus blue mode
+└── dev/         ← tuning pages (rest pose, inner view, clips)
+assets/models/lifetime.glb         ← character and his lifetime_* clips, exported by tools/export_character.py
+assets/models/lifetime-moves.json  ← Mixamo idle/walk/nod/shake retargeted by tools/retarget_mixamo.mjs;
+                                     only used when the model carries no clips
+vendor/three/               ← three.js r170 (MIT)
+```
+
+Re-export the character after editing the .blend (Blender 4.5+ Python module):
+`python tools/export_character.py`, then `npx gltf-transform weld` and `quantize` on the result.
+The export evaluates every action named `lifetime_*` on the full rig (IK included) and bakes it
+into the GLB; the site plays `lifetime_idle`, `lifetime_walk` (in place: the site moves him and
+matches his speed to the stride), `lifetime_nod` and `lifetime_shake`. A looping action (Cyclic
+Animation on, manual frame range) plays its range and wraps to the first frame, so its last key sits
+one frame past the range as a copy of the first; its curves carry Cycles modifiers.
+
+To edit the moves in Blender, `python tools/moves_to_blender.py <character.blend> assets/models/lifetime.glb
+assets/models/lifetime-moves.json lifetime_moves_for_blender.py` writes a script that, run in Blender's
+Scripting tab, keys those four actions onto the rig's own controls (IK targets, poles, spine).
+
+Dev panel: open the page with `#dev` (or `?dev`), or type `dev` at the terminal. It steps the
+character's pose like hand-drawn animation (on 1s to 6s of a 24 or 30 fps clock; where he stands and
+which way he faces still move every frame), switches VIEW.EXE to a level orthographic camera, and sets
+how far in front of him the point he looks at sits when the cursor is off the glass. Settings stay in
+that browser.
+
+Blue mode (on by default) draws everything in black and #0000FF only. Toggle it with the first
+knob on the monitor's chin, the `color` terminal command, or `?blue=0`.
+
 ## Project Structure
 
 ```
 lwrcs.github.io/
-├── index.html              ← Homepage (landing page)
+├── index.html              ← Homepage (CRT desk, see above)
 ├── styles.css              ← Main CSS entry point (imports partials)
 ├── CNAME                   ← Custom domain config
 │

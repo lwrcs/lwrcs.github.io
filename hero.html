@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>lwrcs</title>
+  <meta name="description" content="lwrcs: 3D animation, music videos and music." />
+  <meta name="theme-color" content="#000000" />
+  <meta name="lwrcs-model" content="assets/models/lifetime.glb" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" />
+  <link rel="preload" href="assets/fonts/vt323-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="app/hero.css" />
+  <link rel="modulepreload" href="vendor/three/three.module.min.js" />
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <a class="mark" href="#top" aria-label="lwrcs, back to top">lwrcs</a>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a><a href="#music">Music</a><a href="#about">About</a><a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- the hero: VIEW.EXE, with lifetime behind the glass -->
+    <section class="hero" aria-label="lifetime, behind the glass">
+      <div class="win">
+        <div class="bar"><span>VIEW.EXE</span><i class="b min"></i><i class="b max"></i><i class="b x"></i></div>
+        <div class="glass" id="glass">
+          <canvas id="inner" aria-label="lifetime, a halftone character who follows your cursor and puts a hand on the glass under it"></canvas>
+        </div>
+        <div class="status" aria-hidden="true"><span id="doing">LOADING LIFETIME.GLB</span><span id="where"></span></div>
+      </div>
+    </section>
+
+    <section class="intro">
+      <p class="eyebrow">Animator, director, musician</p>
+      <h1>I make 3D animation and direct music videos.</h1>
+      <div class="intro-body">
+        <p>Everything from modeling and rigging to cinematography, editing and color. When I'm not making visuals for other artists, I'm making my own music.</p>
+        <div class="ctas"><a class="btn" href="#work">See the work</a><a class="btn ghost" href="#music">Listen to lifetime</a></div>
+      </div>
+      <p class="clients"><span class="eyebrow">Worked with</span> <span id="clients">K33G, PinkPantheress, Bryce Vine</span></p>
+    </section>
+
+    <section class="work" id="work" aria-labelledby="work-h">
+      <div class="head">
+        <h2 id="work-h">Selected work</h2>
+        <div class="filters" role="group" aria-label="Filter projects" id="filters"></div>
+      </div>
+      <ul class="grid" id="grid"></ul>
+      <p class="more" id="more" hidden><button type="button" id="more-btn">Show all</button></p>
+    </section>
+
+    <section class="music" id="music" aria-labelledby="music-h">
+      <h2 id="music-h" class="eyebrow">Music</h2>
+      <div class="release" id="release"></div>
+    </section>
+
+    <section class="about" id="about" aria-labelledby="about-h">
+      <figure class="portrait"><img src="img/portfolio/lwrcs_portrait.jpeg" alt="lwrcs" loading="lazy" /></figure>
+      <div class="about-text">
+        <h2 id="about-h" class="eyebrow">About</h2>
+        <p class="lede">I'm lwrcs. I make 3D animation and direct music videos for artists, and I make my own music.</p>
+        <dl class="services">
+          <div><dt>3D animation</dt><dd>Character modeling, rigging, animation and rendering for music videos and commercial work.</dd></div>
+          <div><dt>Music videos</dt><dd>Full creative direction: directing, cinematography, editing and color.</dd></div>
+          <div><dt>Visual design</dt><dd>Cover art, brand identity, motion graphics and everything in between.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-h">
+      <h2 id="contact-h" class="eyebrow">Contact</h2>
+      <p class="big">Got a video, a character or a record that needs visuals?</p>
+      <p class="mail"><span id="email">work@lwrcs.com</span> <button type="button" class="copy" id="copy">Copy</button></p>
+      <p class="social"><a href="https://www.instagram.com/lwrcs/" rel="noopener">Instagram</a><a href="https://www.linkedin.com/in/harrison-kalman-819b81295/" rel="noopener">LinkedIn</a></p>
+    </section>
+  </main>
+
+  <footer class="foot"><span>© 2026 lwrcs</span><a href="#top">Back to top ↑</a></footer>
+
+  <!-- project thumbnails: ordered-dithered to black and #0000FF, full colour on hover -->
+  <svg class="defs" aria-hidden="true" width="0" height="0" focusable="false">
+    <filter id="blue-dither" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  .2126 .7152 .0722 0 0  0 0 0 0 1" result="lum"/>
+      <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='2' height='2' fill='rgb(0,0,247)'/%3E%3Crect x='2' y='0' width='2' height='2' fill='rgb(0,0,120)'/%3E%3Crect x='4' y='0' width='2' height='2' fill='rgb(0,0,215)'/%3E%3Crect x='6' y='0' width='2' height='2' fill='rgb(0,0,88)'/%3E%3Crect x='0' y='2' width='2' height='2' fill='rgb(0,0,56)'/%3E%3Crect x='2' y='2' width='2' height='2' fill='rgb(0,0,183)'/%3E%3Crect x='4' y='2' width='2' height='2' fill='rgb(0,0,24)'/%3E%3Crect x='6' y='2' width='2' height='2' fill='rgb(0,0,151)'/%3E%3Crect x='0' y='4' width='2' height='2' fill='rgb(0,0,199)'/%3E%3Crect x='2' y='4' width='2' height='2' fill='rgb(0,0,72)'/%3E%3Crect x='4' y='4' width='2' height='2' fill='rgb(0,0,231)'/%3E%3Crect x='6' y='4' width='2' height='2' fill='rgb(0,0,104)'/%3E%3Crect x='0' y='6' width='2' height='2' fill='rgb(0,0,8)'/%3E%3Crect x='2' y='6' width='2' height='2' fill='rgb(0,0,135)'/%3E%3Crect x='4' y='6' width='2' height='2' fill='rgb(0,0,40)'/%3E%3Crect x='6' y='6' width='2' height='2' fill='rgb(0,0,167)'/%3E%3C/svg%3E" x="0" y="0" width="8" height="8" result="cell"/>
+      <feTile in="cell" result="bayer"/>
+      <feComposite in="lum" in2="bayer" operator="arithmetic" k1="0" k2=".5" k3=".5" k4="0"/>
+      <feComponentTransfer><feFuncB type="discrete" tableValues="0 1"/></feComponentTransfer>
+    </filter>
+  </svg>
+
+  <script type="module" src="app/hero.js"></script>
+</body>
+</html>
