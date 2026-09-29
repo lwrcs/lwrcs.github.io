@@ -23,9 +23,10 @@ const CROUCH = 0.5;            // deepest crouch (how far his hips drop)
 const CROUCH_COST = 1.0;       // how much he'd rather stand tall than crouch, against straining his arms
 const LET_GO = 0.6;            // how strained a hand holding on can get before it lets go
 // Shoulder limits: the upper arm reaches back at most 35° behind his side (back is its sine), and
-// turns about itself 92° in and 69° out (radians) from how it would be raised straight there from
-// hanging. The elbow also stays below the shoulder or the hand, whichever is higher (_armCost).
-const SHOULDER = { back: 0.57, inward: 1.6, outward: 1.2 };
+// turns about itself 90° in and 69° out (radians) from how it would be raised straight there from
+// hanging. The elbow also stays below the shoulder or the hand, whichever is higher, and never
+// swings in past straight ahead of the shoulder, 90° round from his side (_armCost).
+const SHOULDER = { back: 0.57, inward: Math.PI / 2, outward: 1.2 };
 const MID = 0.14;              // each hand keeps at least this far to its own side of his middle
 const GAP = 0.3;               // and this far from the other hand; the one already there moves over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
@@ -532,7 +533,7 @@ export class InnerView {
     const e = h.g.elbow.clone().sub(shoulder), l1 = e.length(), u = e.clone().divideScalar(l1);
     const high = Math.max(0, e.dot(ch.up) - Math.max(0, _va.subVectors(h.wrist, shoulder).dot(ch.up)) - 0.03) / l1;
     const back = Math.max(0, -u.dot(ch.fwd) - SHOULDER.back);
-    const across = Math.max(0, -0.08 - e.dot(ch.out));
+    const across = Math.max(0, -e.dot(ch.out));              // swung in past straight ahead of the shoulder
     // the upper arm's turn about itself, from how it would be if raised straight there from hanging
     // with the forearm pointing forward; + turns the forearm in toward his middle
     const ref = ch.fwd.clone().applyQuaternion(_qa.setFromUnitVectors(ch.down, u));
@@ -541,7 +542,7 @@ export class InnerView {
     const rot = Math.max(0, turn - SHOULDER.inward) + Math.max(0, -SHOULDER.outward - turn);
     // and, well within those, he'd rather not have the hand bent right back or the fingers hanging down
     const ease = 3 * Math.max(0, w.ext - 0.7) ** 2 + 1.5 * Math.max(0, -h.d.y - 0.3) ** 2;
-    return { cost: 40 * (wr * wr + high * high + back * back + rot * rot) + 300 * across * across + ease, h, w, turn };
+    return { cost: 40 * (wr * wr + high * high + back * back + rot * rot) + 1000 * across * across + ease, h, w, turn };
   }
 
   // Which way the elbow should point (a unit vector off the shoulder-to-wrist line) for a palm flat
