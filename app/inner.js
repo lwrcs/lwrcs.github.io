@@ -18,7 +18,14 @@ const TURN_AHEAD = 0.3;        // how far short of the end of his pacing line he
 const REACH = 0.63;            // shoulder to palm centre, elbow slightly bent
 const STRETCH = 0.67;          // ... and with the arm straight, reaching for a cursor further out
 const LEAN_OUT = 1.0;          // cursor this far across from where he stands: leaning right over, arm at full stretch
-const HOLD = 1.45;             // with a hand on the glass, how far the cursor can go (across) before he steps over
+const HOLD = 1.9;              // with a hand on the glass, how far the cursor can go (across) before he steps over
+const CROUCH = 0.5;            // deepest crouch (how far his hips drop)
+const CROUCH_COST = 1.0;       // how much he'd rather stand tall than crouch, against straining his arms
+const LET_GO = 0.6;            // how strained a hand holding on can get before it lets go
+// Shoulder limits: the upper arm reaches back at most 35° behind his side (back is its sine), and
+// turns about itself 92° in and 69° out (radians) from how it would be raised straight there from
+// hanging. The elbow also stays below the shoulder or the hand, whichever is higher (_armCost).
+const SHOULDER = { back: 0.57, inward: 1.6, outward: 1.2 };
 const MID = 0.14;              // each hand keeps at least this far to its own side of his middle
 const GAP = 0.3;               // and this far from the other hand; the one already there moves over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
@@ -118,7 +125,7 @@ export class InnerView {
     this.mode = 'pace';
     this.side = 'L';
     this.pressW = new Spring(0, 1.1);
-    this.crouch = new Spring(0, 1.2);
+    this.crouch = new Spring(0, 1.2); this.crouchT = 0; this.crouchAge = 1; this._strain = {};   // eased; how low he means to go, see _crouchFor
     this.lean = new Spring(0, 1.2);
     this.far = new Spring(0, 1.0);                        // leaning out toward a far cursor, signed by side
     this.lookW = new Spring(0, 1.0);
@@ -351,10 +358,9 @@ export class InnerView {
     // Feet stay where the clip put them, except the lifted one. ----
     const sgn = main === 'L' ? 1 : -1;
     const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
-    const shY = rig.b('upper_arm.L').getWorldPosition(new THREE.Vector3()).y;
-    // knees bend to bring his shoulders down near a low cursor, so a hand can lie flat there with
-    // the elbow under it rather than bending the wrist back further than it goes
-    const cr = this.crouch.update(pw * clamp(shY - 0.05 - gp.y, 0, 0.35), dt);
+    // knees bend as far as it takes for his hands to lie flat where they go without straining his
+    // arms (worked out below, from the pose last frame)
+    const cr = this.crouch.update(pw * this.crouchT, dt);
     const far = this.far.update(sgn * pw * smooth(0.3, LEAN_OUT, out), dt);   // signed: + leans to his left (+x)
     const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
     if (cr > 0.002 || Math.abs(far) > 0.002) {
@@ -411,18 +417,34 @@ export class InnerView {
     // of him, and when the reaching hand comes in close, the other moves over to make room.
     const side = (x, sg) => (sg > 0 ? Math.max(x, body.x + MID) : Math.min(x, body.x - MID));
     const mainAt = side(gp.x, sgn);
+    const reachLen = REACH + (STRETCH - REACH) * smooth(0.45, 0.8, out);
+    const shoulders = {}, chest = {};
+    for (const s of ['L', 'R']) { shoulders[s] = rig.b('upper_arm.' + s).getWorldPosition(new THREE.Vector3()); chest[s] = this._chest(s); }
+    // how low to crouch next: for the reaching hand at the cursor and the other at its hold
+    // (20 times a second is plenty: the crouch eases in far slower than that)
+    this.crouchAge += dt;
+    if (main !== this._mainWas) { this._mainWas = main; this.crouchAge = 1; }   // each hand's strain is for its own job
+    if (pw < 0.05) { this.crouchT = 0; this._strain = {}; } else if (this.crouchAge >= 0.05) {
+      this.crouchAge = 0;
+      const goals = [{ s: main, palm: V(mainAt, gp.y, 0), shoulder: shoulders[main], ch: chest[main], len: reachLen }];
+      const Ho = this.hand[other];
+      if (Ho.hold && Ho.plant) goals.push({ s: other, palm: Ho.plant, shoulder: shoulders[other], ch: chest[other], len: STRETCH, cap: LET_GO });
+      this.crouchT = this._crouchFor(goals, cr, this.crouchT);
+    }
+    const strain = this._strain;
     for (const s of ['L', 'R']) {
       const H = this.hand[s], sg = s === 'L' ? 1 : -1;
-      const shoulder = rig.b('upper_arm.' + s).getWorldPosition(new THREE.Vector3());
+      const shoulder = shoulders[s], ch = chest[s];
       if (pw < 0.05) H.used = false;
       let goal = null;
       if (s === main) goal = gp.clone();
       else if (H.hold && H.plant) goal = H.plant.clone();
-      else if (s === 'R' && pw > 0.8 && !H.used) goal = V(shoulder.x - 0.12, shoulder.y - 0.32, 0);
+      // with nothing held yet, the right hand braces beside the left, about as high
+      else if (s === 'R' && pw > 0.8 && !H.used) goal = V(shoulder.x - 0.12, clamp(gp.y, shoulder.y - 0.25, shoulder.y + 0.1), 0);
       if (goal) goal.x = side(goal.x, sg);
       if (goal && s !== main && (goal.x - mainAt) * sg < GAP) goal.x = mainAt + sg * (GAP + 0.1);
-      // let go once he leans well over the other way, or it's out of reach
-      if (goal && s !== main && (Math.abs(far) > 0.75 || goal.distanceTo(shoulder) > STRETCH + 0.01)) goal = null;
+      // let go once he leans well over the other way, or it's out of reach or no longer comfortable
+      if (goal && s !== main && (Math.abs(far) > 0.75 || goal.distanceTo(shoulder) > STRETCH + 0.01 || strain[s] > LET_GO)) goal = null;
       H.hold = !!goal && pw > 0.05;
       if (H.hold) H.used = true;
       const hw = H.w.update(goal ? pw : 0, dt);
@@ -433,8 +455,7 @@ export class InnerView {
       else if (s === main) {
         // keep it where he can reach, and only re-plant when the cursor has moved off the hand
         const dz = -shoulder.z;
-        const len = REACH + (STRETCH - REACH) * smooth(0.45, 0.8, out);
-        const r = Math.sqrt(Math.max(0.01, len * len - dz * dz));
+        const r = Math.sqrt(Math.max(0.01, reachLen * reachLen - dz * dz));
         const off = new THREE.Vector2(goal.x - shoulder.x, goal.y - shoulder.y);
         if (off.length() > r) off.setLength(r);
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
@@ -456,9 +477,7 @@ export class InnerView {
       const axis0 = wrist0.clone().sub(shoulder).normalize();
       const clipBend = rig.b('forearm.' + s).getWorldPosition(new THREE.Vector3()).sub(shoulder);
       const turned = (a) => square(clipBend, axis0).applyAxisAngle(axis0, a);
-      const up = smooth(-0.15, 0.35, palm.y - 0.05 - shoulder.y);
-      const pole0 = shoulder.clone().add(rig.toWorldDir(V(0.5 * sg * (1 - 0.8 * up), -0.6 - 0.5 * up, -0.45 + 0.25 * up)));
-      const want = this._elbowFor(s, shoulder, palm, wrist0, pole0, turned(H.bend));
+      const want = this._elbowFor(s, shoulder, palm, wrist0, this._pole(s, shoulder, palm.y), turned(H.bend), ch);
       H.bend += wrap(angleAbout(turned(0), want, axis0) - H.bend) * (1 - Math.exp(-12 * dt));
       const flat = this._flatHand(s, palm, shoulder, turned(H.bend), wrist0);
       H.pressed = hw > 0.9 && lift < 0.05 && knock > -0.1;
@@ -486,12 +505,50 @@ export class InnerView {
     this.renderer.render(this.scene, this.camera);
   }
 
+  // His chest's axes, for side s: up the spine, forward and out to that side (unit vectors).
+  _chest(s) {
+    const up = Y.clone().applyQuaternion(this.rig.b('spine.003').getWorldQuaternion(_qa));
+    const fwd = this.rig.toWorldDir(Z.clone()); fwd.addScaledVector(up, -fwd.dot(up)).normalize();
+    const out = new THREE.Vector3().crossVectors(up, fwd).multiplyScalar(s === 'L' ? 1 : -1);
+    return { up, down: up.clone().negate(), fwd, out };
+  }
+
+  // The preferred side for the elbow, off the shoulder: out and back for a low hand, dropping
+  // underneath as the hand goes up past the shoulder.
+  _pole(s, shoulder, palmY) {
+    const up = smooth(-0.15, 0.35, palmY - 0.05 - shoulder.y), sg = s === 'L' ? 1 : -1;
+    return shoulder.clone().add(this.rig.toWorldDir(V(0.5 * sg * (1 - 0.8 * up), -0.6 - 0.5 * up, -0.45 + 0.25 * up)));
+  }
+
+  // How far an arm goes past what an arm does, with the palm flat at `palm` and the elbow pointing
+  // `bend` (in squared radians, roughly; 0 when it's all within reach): the wrist twisting or bending
+  // back too far; at the shoulder, the elbow lifting above both the shoulder and the hand, reaching
+  // far behind him or in across his chest, or the upper arm turned about itself further than it goes.
+  _armCost(s, shoulder, palm, bend, wrist0, ch) {
+    const rig = this.rig, lim = 0.06;                        // aim a little inside the wrist's limits
+    const h = this._flatHand(s, palm, shoulder, bend, wrist0);
+    const w = rig.wristAngles(s, h.q, h.g.f, h.g.A, Z);
+    const wr = Math.max(0, w.twist - WRIST.supinate + lim) + Math.max(0, -WRIST.pronate + lim - w.twist) + Math.max(0, w.ext - WRIST.extend + lim);
+    const e = h.g.elbow.clone().sub(shoulder), l1 = e.length(), u = e.clone().divideScalar(l1);
+    const high = Math.max(0, e.dot(ch.up) - Math.max(0, _va.subVectors(h.wrist, shoulder).dot(ch.up)) - 0.03) / l1;
+    const back = Math.max(0, -u.dot(ch.fwd) - SHOULDER.back);
+    const across = Math.max(0, -0.08 - e.dot(ch.out));
+    // the upper arm's turn about itself, from how it would be if raised straight there from hanging
+    // with the forearm pointing forward; + turns the forearm in toward his middle
+    const ref = ch.fwd.clone().applyQuaternion(_qa.setFromUnitVectors(ch.down, u));
+    const fp = h.g.f.clone().addScaledVector(u, -h.g.f.dot(u));
+    const turn = smooth(0.15, 0.4, fp.length()) * (s === 'L' ? 1 : -1) * Math.atan2(_va.crossVectors(ref, fp).dot(u), ref.dot(fp));
+    const rot = Math.max(0, turn - SHOULDER.inward) + Math.max(0, -SHOULDER.outward - turn);
+    // and, well within those, he'd rather not have the hand bent right back or the fingers hanging down
+    const ease = 3 * Math.max(0, w.ext - 0.7) ** 2 + 1.5 * Math.max(0, -h.d.y - 0.3) ** 2;
+    return { cost: 40 * (wr * wr + high * high + back * back + rot * rot) + 300 * across * across + ease, h, w, turn };
+  }
+
   // Which way the elbow should point (a unit vector off the shoulder-to-wrist line) for a palm flat
-  // on the glass: the preferred side, pole0, turned only as far as the wrist's limits need, never
-  // in across his chest (he'd rather lift the elbow), and a little reluctant to leave where it is.
-  _elbowFor(s, shoulder, palm, wrist0, pole0, now) {
-    const rig = this.rig, n = 48, lim = 0.06;                // aim a little inside the hard limits
-    const out = rig.toWorldDir(V(s === 'L' ? 1 : -1, 0, 0));
+  // on the glass: the preferred side, pole0, turned only as far as the arm's limits need, and a
+  // little reluctant to leave where it is.
+  _elbowFor(s, shoulder, palm, wrist0, pole0, now, ch) {
+    const n = 48;
     const dir = wrist0.clone().sub(shoulder).normalize();
     const b0 = pole0.clone().sub(shoulder); b0.addScaledVector(dir, -b0.dot(dir)).normalize();
     const b1 = new THREE.Vector3().crossVectors(dir, b0);
@@ -500,18 +557,60 @@ export class InnerView {
     let best = 0;
     for (let i = 0; i < n; i++) {
       const k = i - n / 2, b = at(k);
-      const h = this._flatHand(s, palm, shoulder, b, wrist0);
-      const w = rig.wristAngles(s, h.q, h.g.f, h.g.A, Z);
-      const over = Math.max(0, w.twist - WRIST.supinate + lim) + Math.max(0, -WRIST.pronate + lim - w.twist) + Math.max(0, w.ext - WRIST.extend + lim);
-      const across = Math.max(0, -0.08 - h.g.elbow.clone().sub(shoulder).dot(out));
       const phi = k * 2 * Math.PI / n, from = Math.acos(THREE.MathUtils.clamp(b.dot(now), -1, 1));
-      cost[i] = 40 * over * over + 300 * across * across + 0.1 * phi * phi + 0.05 * from * from;
+      cost[i] = this._armCost(s, shoulder, palm, b, wrist0, ch).cost + 0.1 * phi * phi + 0.05 * from * from;
       if (cost[i] < cost[best]) best = i;
     }
     // between samples: the bottom of a parabola through the best one and its neighbours
     const c0 = cost[(best + n - 1) % n], c1 = cost[best], c2 = cost[(best + 1) % n];
     const den = c0 - 2 * c1 + c2;
     return at(best - n / 2 + (den > 1e-9 ? THREE.MathUtils.clamp(0.5 * (c0 - c2) / den, -0.5, 0.5) : 0));
+  }
+
+  // The least an arm can strain (as _armCost, plus a little for the elbow off its preferred side)
+  // putting the palm flat at `palm` from a shoulder at `shoulder`, over a coarse turn of the elbow.
+  _armBest(s, shoulder, palm, ch) {
+    const n = 16, pole0 = this._pole(s, shoulder, palm.y);
+    const wrist0 = palm.clone().addScaledVector(_va.subVectors(shoulder, palm).normalize(), 0.09);
+    const dir = wrist0.clone().sub(shoulder).normalize();
+    const b0 = pole0.sub(shoulder); b0.addScaledVector(dir, -b0.dot(dir)).normalize();
+    const b1 = new THREE.Vector3().crossVectors(dir, b0), b = new THREE.Vector3();
+    let best = Infinity;
+    for (let i = 0; i < n; i++) {
+      const phi = (i - n / 2) * 2 * Math.PI / n;
+      b.copy(b0).multiplyScalar(Math.cos(phi)).addScaledVector(b1, Math.sin(phi));
+      best = Math.min(best, this._armCost(s, shoulder, palm, b, wrist0, ch).cost + 0.1 * phi * phi);
+    }
+    return best;
+  }
+
+  // How low to crouch: the depth that leaves the arms least strained, reaching each hand's spot on
+  // the glass (goals: { s, palm, shoulder, ch, len, cap }, shoulders as posed now, crouched `now`),
+  // with a spot out of reach counting against it, and standing tall preferred. A hand that can let
+  // go strains no more than `cap`: past that, it lets go instead (see _strain).
+  _crouchFor(goals, now, was) {
+    const n = 6, cost = [], each = [];
+    let best = 0;
+    for (let i = 0; i < n; i++) {
+      const c = (i / (n - 1)) * CROUCH, sh = new THREE.Vector3(), palm = new THREE.Vector3();
+      let sum = CROUCH_COST * (0.3 * c + c * c) + 0.5 * (c - was) * (c - was);
+      each[i] = {};
+      for (const g of goals) {
+        sh.copy(g.shoulder); sh.y += now - c;
+        palm.copy(g.palm);
+        const r = Math.sqrt(Math.max(0.01, g.len * g.len - sh.z * sh.z)), off = Math.hypot(palm.x - sh.x, palm.y - sh.y);
+        let a = 0;
+        if (off > r) { palm.x = sh.x + (palm.x - sh.x) * r / off; palm.y = sh.y + (palm.y - sh.y) * r / off; a = 20 * (off - r) * (off - r); }
+        sum += Math.min(g.cap ?? Infinity, each[i][g.s] = a + this._armBest(g.s, sh, palm, g.ch));
+      }
+      cost[i] = sum;
+      if (sum < cost[best]) best = i;
+    }
+    const c0 = cost[Math.max(0, best - 1)], c1 = cost[best], c2 = cost[Math.min(n - 1, best + 1)];
+    const den = c0 - 2 * c1 + c2;
+    const k = best > 0 && best < n - 1 && den > 1e-9 ? THREE.MathUtils.clamp(0.5 * (c0 - c2) / den, -0.5, 0.5) : 0;
+    this._crouchCost = cost; this._strain = each[best];   // how strained each arm is there
+    return ((best + k) / (n - 1)) * CROUCH;
   }
 
   // The hand flat on the glass with its palm centre at `palm` and the fingers carrying on along
@@ -558,6 +657,8 @@ function strideSpeed(root, clip) {
 }
 
 // `v` made square to the axis, as a unit vector (straight down, if it lies along the axis).
+const _qa = new THREE.Quaternion(), _va = new THREE.Vector3();
+
 function square(v, axis) {
   const o = v.clone().addScaledVector(axis, -v.dot(axis));
   if (o.lengthSq() < 1e-8) o.set(0, -1, 0).addScaledVector(axis, axis.y);
