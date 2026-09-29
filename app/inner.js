@@ -27,6 +27,10 @@ const LET_GO = 0.6;            // how strained a hand holding on can get before 
 // hanging. The elbow also stays below the shoulder or the hand, whichever is higher, and never
 // swings in past straight ahead of the shoulder, 90° round from his side (_armCost).
 const SHOULDER = { back: 0.57, inward: Math.PI / 2, outward: 1.2 };
+const SIDESTEP = 0.5;          // fastest sidestep along the glass (m/s)
+const STEP_T = 0.3;            // one foot's sidestep, lift to landing (s)
+const STEP_UP = 0.1;           // and how high it lifts
+const LEG_MAX = 0.9;           // hip to ankle with the knee all but straight
 const MID = 0.14;              // each hand keeps at least this far to its own side of his middle
 const GAP = 0.3;               // and this far from the other hand; the one already there moves over
 const LOOK_AHEAD = 0.6;        // with the cursor off the glass, he looks at the point on its line this far in front of him
@@ -123,6 +127,8 @@ export class InnerView {
     this.dir = 1; this.pause = 1.2; this.pauseFace = null; this.standX = null; this.committed = false;
     this.turnSign = 0; this.turnWant = 0; this.cruise = false;   // a turn in progress: which way, and whether he walks through it
     this.slide = new Spring(0, 1.6);                      // sidestep speed at the glass
+    this.stepW = new Spring(0, 2.5);                      // his feet stepping (_step) rather than as the clip has them
+    this.feet = { L: { at: null, from: null, t: 1 }, R: { at: null, from: null, t: 1 } };   // where each is planted; a step under way runs t 0 to 1
     this.mode = 'pace';
     this.side = 'L';
     this.pressW = new Spring(0, 1.1);
@@ -219,13 +225,14 @@ export class InnerView {
       const rel = off * (this.side === 'L' ? 1 : -1);
       // A reach, once started, always lands: he stays put and stretches after the cursor. With
       // a hand on the glass he stays until the cursor is further than he can lean out to (it
-      // crossing in front of him swaps hands). Before that, he steps again when the cursor
-      // drifts in front of his face or out of easy reach.
+      // crossing in front of him swaps hands), then sidesteps over to it without letting go.
+      // Before that, he steps again when the cursor drifts in front of his face or out of easy reach.
       const landed = this.committed && this.hand[this.side].w.x > 0.9;
+      const over = landed && Math.abs(off) > HOLD;
       const restand = was !== 'press' || this.standX == null
-        || (!this.committed && (rel < 0.1 || rel > 0.58)) || (landed && Math.abs(off) > HOLD);
+        || (!this.committed && (rel < 0.1 || rel > 0.58)) || over;
       if (restand) {
-        this.committed = false;
+        if (!over) this.committed = false;
         let side = this.pos.x < gp.x ? 'L' : 'R';
         // hemmed in by a wall, reach with the other hand rather than across his face
         if (Math.abs(at(side)) > lim + 0.08 && Math.abs(at(side === 'L' ? 'R' : 'L')) < Math.abs(at(side))) side = side === 'L' ? 'R' : 'L';
@@ -270,8 +277,9 @@ export class InnerView {
   _locomote(dt, face) {
     const to = new THREE.Vector2().subVectors(this.target, this.pos);
     const dist = to.length();
-    // at the glass, a short shuffle sideways is a sidestep, not a turn away and back
-    const sidestep = this.mode === 'press' && dist < 0.45 && Math.abs(to.y) < 0.1;
+    // at the glass, a short shuffle sideways is a sidestep, not a turn away and back, and so is
+    // any move along it with his hands on it
+    const sidestep = this.mode === 'press' && (dist < 0.45 || this.committed) && Math.abs(to.y) < 0.1;
     let want = face, vWant = 0;
     if (dist > 0.05 && !sidestep) {
       want = Math.atan2(to.x, to.y);
@@ -300,17 +308,17 @@ export class InnerView {
     const v = Math.max(0, this.speed.update(vWant, dt));
     this.pos.x += Math.sin(this.heading) * v * dt;
     this.pos.y += Math.cos(this.heading) * v * dt;
-    const sv = this.slide.update(sidestep ? clamp(to.x * 2.5, -0.45, 0.45) : 0, dt);
+    const sv = this.slide.update(sidestep ? clamp(to.x * 2.5, -SIDESTEP, SIDESTEP) : 0, dt);
     this.pos.x += sv * dt;
     this.pos.y = Math.min(this.pos.y, PRESS_Z);              // never walk into the glass
     return { v, w, sv, dist, dAng };
   }
 
-  _animate(dt, v, w, sv = 0) {
+  _animate(dt, v, w) {
     const { idle, walk } = this.act;
     if (idle && walk) {
-      // shuffling feet while turning on the spot or stepping sideways
-      const step = Math.max(smooth(0.3, 1.8, Math.abs(w)), smooth(0.03, 0.25, Math.abs(sv))) * 0.55;
+      // shuffling feet while turning on the spot (sidesteps are stepped out in _step)
+      const step = smooth(0.3, 1.8, Math.abs(w)) * 0.55;
       const ww = Math.max(smooth(0, this.walkSpeed * 0.45, v), step);
       walk.setEffectiveWeight(ww); idle.setEffectiveWeight(1 - ww);
       walk.timeScale = Math.max(v / this.clipSpeed, step * 0.5);
@@ -341,7 +349,7 @@ export class InnerView {
     this.char.position.set(this.pos.x, 0, this.pos.y);
     this.char.rotation.set(0, this.heading, 0);
     this.char.updateMatrixWorld(true);
-    this._animate(dt, v, w, sv);
+    this._animate(dt, v, w);
     this.char.updateMatrixWorld(true);
 
     const atGlass = this.mode === 'press' && dist < 0.1 && Math.abs(dAng) < 0.35 && v < 0.2 && Math.abs(sv) < 0.15;
@@ -356,27 +364,42 @@ export class InnerView {
 
     // ---- body: crouch for a low cursor; for one further out than his arm, lean right over to it:
     // hips over the leg on that side, the weight on it, the other leg lifting out the other way.
-    // Feet stay where the clip put them, except the lifted one. ----
+    // Feet stay where the clip put them, except the lifted one, or step when he sidesteps. ----
     const sgn = main === 'L' ? 1 : -1;
     const out = (gp.x - body.x) * sgn;                      // how far out to the reaching side
+    const feet = {};
+    for (const s of ['L', 'R']) { const f = rig.b('foot.' + s); feet[s] = { p: f.getWorldPosition(new THREE.Vector3()), q: f.getWorldQuaternion(new THREE.Quaternion()) }; }
+    const stepping = this._step(dt, sv, feet);
+    const sw = this.stepW.x;
     // knees bend as far as it takes for his hands to lie flat where they go without straining his
     // arms (worked out below, from the pose last frame)
     const cr = this.crouch.update(pw * this.crouchT, dt);
-    const far = this.far.update(sgn * pw * smooth(0.3, LEAN_OUT, out), dt);   // signed: + leans to his left (+x)
+    // sidestepping over to a far cursor he mostly straightens up, and reaches out with his arm
+    const far = this.far.update(sgn * pw * smooth(0.3, LEAN_OUT, out) * (1 - 0.85 * smooth(0.05, 0.3, Math.abs(sv))), dt);   // signed: + leans to his left (+x)
     const ln = this.lean.update(pw * (0.07 + clamp(out - 0.2, 0, 0.3) * 0.25), dt);
-    if (cr > 0.002 || Math.abs(far) > 0.002) {
-      const feet = {};
-      for (const s of ['L', 'R']) { const f = rig.b('foot.' + s); feet[s] = { p: f.getWorldPosition(new THREE.Vector3()), q: f.getWorldQuaternion(new THREE.Quaternion()) }; }
-      this.char.position.y -= cr; this.char.updateMatrixWorld(true);
+    if (cr > 0.002 || Math.abs(far) > 0.002 || sw > 0.002) {
+      this.char.position.y -= cr - stepping.bob * sw; this.char.updateMatrixWorld(true);
       const hips = rig.b('spine');
-      const hp = hips.getWorldPosition(new THREE.Vector3()).add(rig.toWorldDir(V(far * 0.2, -Math.abs(far) * 0.05, 0)));
+      const hp = hips.getWorldPosition(new THREE.Vector3()).add(rig.toWorldDir(V(far * 0.2 + stepping.sway * sw, -Math.abs(far) * 0.05, 0)));
       hips.position.copy(hips.parent.worldToLocal(hp)); hips.updateMatrixWorld(true);
-      rig.rotateRoot('spine', Z, -far * 0.3);
-      const lift = Math.abs(far), away = -Math.sign(far);
-      const tip = new THREE.Quaternion().setFromAxisAngle(rig.toWorldDir(Z.clone()), -far * 0.5);
+      rig.rotateRoot('spine', Z, -far * 0.3 + stepping.tilt * sw);
+      rig.rotateRoot('spine.001', Z, -stepping.tilt * sw);    // the hips hitch up on the lifting side, not his chest
+      const lift = Math.abs(far) * (1 - sw), away = -Math.sign(far);
+      const tip = new THREE.Quaternion().setFromAxisAngle(rig.toWorldDir(Z.clone()), -far * 0.5 * (1 - sw));
+      const at = {};
       for (const s of ['L', 'R']) {
-        const p = feet[s].p.clone(), q = feet[s].q.clone();
-        if ((s === 'L' ? 1 : -1) === away) { p.add(rig.toWorldDir(V(away * 0.22 * lift, 0.28 * lift, 0))); q.premultiply(tip); }
+        at[s] = { p: feet[s].p.clone().lerp(stepping[s], sw), q: feet[s].q.clone() };
+        if ((s === 'L' ? 1 : -1) === away) { at[s].p.add(rig.toWorldDir(V(away * 0.22 * lift, 0.28 * lift, 0))); at[s].q.premultiply(tip); }
+      }
+      // with the feet spread wide, the knees bend and the hips drop rather than a leg over-reaching
+      let drop = 0;
+      for (const s of ['L', 'R']) {
+        const d = at[s].p.clone().sub(rig.b('thigh.' + s).getWorldPosition(new THREE.Vector3())), across = Math.hypot(d.x, d.z);
+        if (across < LEG_MAX) drop = Math.max(drop, -d.y - Math.sqrt(LEG_MAX * LEG_MAX - across * across));
+      }
+      if (drop > 0) { this.char.position.y -= drop; this.char.updateMatrixWorld(true); }
+      for (const s of ['L', 'R']) {
+        const { p, q } = at[s];
         const knee = rig.b('thigh.' + s).getWorldPosition(new THREE.Vector3()).add(rig.toWorldDir(V(0, 0, 1)));
         rig.legIK(s, p, knee);
         rig.setWorldQuat(rig.b('foot.' + s), q);
@@ -433,6 +456,7 @@ export class InnerView {
       this.crouchT = this._crouchFor(goals, cr, this.crouchT);
     }
     const strain = this._strain;
+    const slideW = smooth(0.05, 0.2, Math.abs(sv));          // sidestepping: the hands slide along the glass with him
     for (const s of ['L', 'R']) {
       const H = this.hand[s], sg = s === 'L' ? 1 : -1;
       const shoulder = shoulders[s], ch = chest[s];
@@ -443,6 +467,7 @@ export class InnerView {
       // with nothing held yet, the right hand braces beside the left, about as high
       else if (s === 'R' && pw > 0.8 && !H.used) goal = V(shoulder.x - 0.12, clamp(gp.y, shoulder.y - 0.25, shoulder.y + 0.1), 0);
       if (goal) goal.x = side(goal.x, sg);
+      if (goal && s !== main && H.hold && slideW > 0) { H.plant.x += sv * dt; goal.x = H.plant.x; }
       if (goal && s !== main && (goal.x - mainAt) * sg < GAP) goal.x = mainAt + sg * (GAP + 0.1);
       // let go once he leans well over the other way, or it's out of reach or no longer comfortable
       if (goal && s !== main && (Math.abs(far) > 0.75 || goal.distanceTo(shoulder) > STRETCH + 0.01 || strain[s] > LET_GO)) goal = null;
@@ -460,12 +485,13 @@ export class InnerView {
         const off = new THREE.Vector2(goal.x - shoulder.x, goal.y - shoulder.y);
         if (off.length() > r) off.setLength(r);
         goal.set(shoulder.x + off.x, shoulder.y + off.y, 0);
-        if (!H.plant || H.plant.distanceTo(goal) > 0.09) { this._leave(H, s); H.plant = goal.clone(); }
+        if (H.plant && slideW > 0 && hw > 0.9) H.plant.copy(goal);
+        else if (!H.plant || H.plant.distanceTo(goal) > 0.09) { this._leave(H, s); H.plant = goal.clone(); }
       } else if (!H.plant || H.plant.distanceTo(goal) > 0.05) { this._leave(H, s); H.plant = goal.clone(); }
       if (hw < 0.01) { H.palm.snap(animPalm); H.q.copy(animQ); H.bend = 0; H.fresh = true; continue; }
       const plant = H.plant || animPalm;
       const travel = Math.hypot(H.palm.x.x - plant.x, H.palm.x.y - plant.y);
-      const lift = smooth(0.005, 0.06, travel);             // off the glass while moving, flat on it when there
+      const lift = smooth(0.005, 0.06, travel) * (1 - slideW);   // off the glass while moving, flat on it when there
       const knock = H.knock.update(0, dt);
       const palmT = plant.clone(); palmT.z = CONTACT - lift * 0.07 + knock * 0.05;
       const palm = H.palm.update(palmT, dt);
@@ -504,6 +530,50 @@ export class InnerView {
       else rig.restore(this._held);                           // hold the drawing; the root has moved on
     }
     this.renderer.render(this.scene, this.camera);
+  }
+
+  // Sidestepping: each foot stays planted while he moves on over it, then lifts and swings out to
+  // where it will be under him and a little ahead, one foot at a time, the leading one first and
+  // never across the other; when he stops, they step back under him. `clip` is where the clip has
+  // each foot. Returns where each foot goes, and how far the hips bob, tilt and sway over the planted foot.
+  _step(dt, vx, clip) {
+    const F = this.feet, speed = Math.abs(vx), dirn = Math.sign(vx);
+    const home = (s) => clip[s].p;
+    const off = (s) => F[s].at.x - home(s).x;                // + is to his left of where it would be
+    for (const s of ['L', 'R']) if (!F[s].at) F[s].at = home(s).clone();
+    const swinging = F.L.t < 1 ? 'L' : F.R.t < 1 ? 'R' : null;
+    const settled = !swinging && Math.abs(off('L')) < 0.03 && Math.abs(off('R')) < 0.03;
+    const w = this.stepW.update(speed > 0.02 || !settled ? 1 : 0, dt);
+    if (w < 0.002 && settled) { F.L.at = null; F.R.at = null; return { L: home('L'), R: home('R'), bob: 0, tilt: 0, sway: 0 }; }
+    // where a foot lands: the spot under him once it's down, a little ahead in the way he's going,
+    // and at least a foot's width from the other one, on its own side
+    const aim = (s, t) => {
+      const p = home(s).clone(); p.x += vx * STEP_T * (1 - t) + vx * STEP_T * 0.7;
+      const o = F[s === 'L' ? 'R' : 'L'].at.x;
+      p.x = s === 'L' ? clamp(p.x, o + 0.14, o + 0.6) : clamp(p.x, o - 0.6, o - 0.14);
+      return p;
+    };
+    if (!swinging) {
+      // the foot furthest behind where it would be under him goes next (the leading one, if it's close)
+      const moving = speed > 0.02, lead = dirn > 0 ? 'L' : 'R';
+      const behind = (s) => (moving ? -off(s) * dirn : Math.abs(off(s)));
+      let s = behind('L') > behind('R') ? 'L' : 'R';
+      if (moving && Math.abs(behind('L') - behind('R')) < 0.02) s = lead;
+      if (Math.max(behind('L'), behind('R')) > (moving ? Math.max(0.05, speed * STEP_T * 0.7) : 0.03)) { F[s].from = F[s].at.clone(); F[s].t = 0; }
+    }
+    const res = { bob: -0.06, tilt: 0, sway: 0 };            // knees a little bent, so the feet can spread
+    for (const s of ['L', 'R']) {
+      const f = F[s];
+      if (f.t < 1) {
+        f.t = Math.min(1, f.t + dt / STEP_T);
+        const to = aim(s, f.t), e = smooth(0, 1, f.t), up = Math.sin(Math.PI * f.t);
+        res[s] = f.from.clone().lerp(to, e); res[s].y += STEP_UP * up;
+        // the body rises over the planted foot as the other lifts, and settles as it lands
+        res.bob += 0.022 * up; res.tilt = (s === 'L' ? 1 : -1) * 0.07 * up; res.sway = (s === 'L' ? -1 : 1) * 0.035 * up;
+        if (f.t >= 1) f.at = to;
+      } else res[s] = f.at.clone();
+    }
+    return res;
   }
 
   // His chest's axes, for side s: up the spine, forward and out to that side (unit vectors).
